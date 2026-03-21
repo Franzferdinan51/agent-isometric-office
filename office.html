@@ -210,8 +210,8 @@ function createMainOffice(){
     add(dg,mkBox(1.2,0.1,0.4,0x2a2a2a));L(dg).position.set(0,1.65,0.5);
     add(dg,mkBox(0.2,0.1,0.3,0x2a2a2a));L(dg).position.set(1,1.65,0.5);
     var mug=createCoffeeMug();mug.position.set(1.5,1.75,-0.8);dg.add(mug);officeObjects.mugs.push(mug);
-    var lamp=createDeskLamp();lamp.position.set(-1.5,1.6,-0.5);dg.add(lamp);officeObjects.lamps.push(lamp);
-    if(i%2===0){var plant=createPlant();plant.position.set(-1.5, 1.5, 0.8);dg.add(plant);officeObjects.plants.push(plant);}
+    var lamp=createDeskLamp();lamp.position.set(-1.5, 1.6, -0.5);dg.add(lamp);officeObjects.lamps.push(lamp);
+    if(i%2===0){var plant=createPlant();plant.position.set(-1.5, 1.6, 0.8);dg.add(plant);officeObjects.plants.push(plant);}
     g.add(dg);officeObjects.desks.push(dg);
     var chair=createChair();chair.position.set(dp.x,0,dp.z+2);g.add(chair);officeObjects.chairs.push(chair);
   });
