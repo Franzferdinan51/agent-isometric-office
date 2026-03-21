@@ -37,7 +37,7 @@ canvas{display:block}
 </head>
 <body>
 <div id="canvas-container"></div>
-<div id="connection-status"><div class="dot"></div><span id="status-text">Demo Mode</span></div>
+<div id="connection-status"><div class="dot"></div><span id="status-text">Duck Labs</span></div>
 <div id="time-indicator"><div class="time-label" id="time-label">Day 12:00</div><input type="range" id="time-slider" min="0" max="24" step="0.5" value="12"></div>
 <div id="agent-panel"><button class="close-btn" onclick="closeAgentPanel()">x</button>
 <h2><span id="agent-emoji">E</span> <span id="agent-name">Agent</span></h2>
@@ -63,7 +63,7 @@ canvas{display:block}
 <script>
 
 
-const CONFIG={gatewayUrl:'http://localhost:18789',dashboardApiUrl:'http://localhost:3001/api/gateway',pollInterval:3000,agentCount:6,officeWidth:90,officeDepth:90,frustumSize:80};
+const CONFIG={gatewayUrl:'http://localhost:18790',dashboardApiUrl:'http://localhost:18790',pollInterval:3000,agentCount:6,officeWidth:90,officeDepth:90,frustumSize:80};
 let scene,camera,renderer,controls,agents=[],clock;
 let officeObjects={monitors:[],plants:[],mugs:[],lamps:[],blinkLights:[],steamParticles:[],neonStrips:[],waterParticles:[],chairs:[],desks:[],hockeyBall:null};
 let ambientLights={main:null,fill:null};
@@ -672,7 +672,7 @@ function updateDemoAgents(){
   agents.forEach(function(agent,i){updateAgentStatus(agent,statuses[i],{name:names[i],model:'bailian/qwen3.5-plus',tokens:Math.floor(Math.random()*50000),task:tasks[i]});});
   if(Math.random()>0.7){var events=[{agent:names[Math.floor(Math.random()*names.length)],action:tasks[Math.floor(Math.random()*tasks.length)],time:new Date().toLocaleTimeString()}];updateTicker(events);}
 }
-function updateConnectionStatus(connected){var statusEl=document.getElementById('connection-status');var textEl=document.getElementById('status-text');if(connected){statusEl.classList.remove('disconnected');textEl.textContent='Live - Gateway Connected';}else{statusEl.classList.add('disconnected');textEl.textContent='Demo Mode (Gateway Offline)';}}
+function updateConnectionStatus(connected){var statusEl=document.getElementById('connection-status');var textEl=document.getElementById('status-text');if(connected){statusEl.classList.remove('disconnected');textEl.textContent='Duck Labs — Live';}else{statusEl.classList.add('disconnected');textEl.textContent='Duck Labs';}}
 function updateTicker(events){var tickerContent=document.getElementById('ticker-content');var messages=events.map(function(e){return e.agent+': '+e.action+' ('+e.time+')';}).join(' | ');tickerContent.textContent=messages+' | '+tickerContent.textContent.split(' | ').slice(0,3).join(' | ');}
 function onMouseClick(event){
   var rect=renderer.domElement.getBoundingClientRect();mouse.x=((event.clientX-rect.left)/rect.width)*2-1;mouse.y=-((event.clientY-rect.top)/rect.height)*2+1;
