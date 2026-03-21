@@ -85,6 +85,7 @@ let ambientLights={main:null,fill:null};
 let timeOfDay=12,selectedAgent=null,raycaster,mouse,dustParticles,activityFeed=[];
 let roomGroups={};
 const STATUS_COLORS={active:0x00ff88,idle:0xffaa00,error:0xff4444,thinking:0x4488ff};
+const DESK_POSITIONS=[{x:-30,z:-25},{x:-30,z:-10},{x:-30,z:5},{x:-8,z:-25},{x:-8,z:-10},{x:-8,z:5}];
 function init(){
   clock=new THREE.Clock();
   scene=new THREE.Scene();scene.background=new THREE.Color(0x1e2433);
@@ -180,14 +181,6 @@ function createChair() {
         wheel.position.set(Math.cos(a)*0.25, 0.08, Math.sin(a)*0.25); g.add(wheel);
       }
       return g;
-    }
-function createAgents() {
-      DESK_POSITIONS.forEach((pos, i) => {
-        const agent = createAgent(i);
-        agent.position.set(pos.x, 0, pos.z+1.5);
-        scene.add(agent);
-        agents.push(agent);
-      });
     }
 
 function createMainOffice(){
@@ -652,9 +645,26 @@ function updateDustParticles(){
   }
   dustParticles.geometry.attributes.position.needsUpdate=true;
 }
+function createAgent(index){
+  var g=new THREE.Group();
+  g.userData.agentIndex=index;
+  var bodyMat=mkMat(0x4a4a6a);
+  var body=mkCyl(0.3,0.3,0.6,12,0x4a4a6a);body.position.y=0.9;g.add(body);
+  var topCap=mkSphere(0.3,12,0x4a4a6a);topCap.position.y=1.2;g.add(topCap);
+  var bottomCap=mkSphere(0.3,12,0x4a4a6a);bottomCap.position.y=0.6;g.add(bottomCap);
+  var head=mkSphere(0.25,16,0xffcc99);head.position.y=1.55;g.add(head);
+  var ring=new THREE.Mesh(
+    new THREE.TorusGeometry(0.4,0.05,8,32),
+    new THREE.MeshStandardMaterial({color:STATUS_COLORS.active,emissive:STATUS_COLORS.active,emissiveIntensity:0.8})
+  );
+  ring.position.y=0.1;ring.rotation.x=Math.PI/2;ring.castShadow=true;ring.receiveShadow=true;g.add(ring);
+  g.userData.statusRing=ring;
+  g.userData.status='active';
+  g.userData.agentData=null;
+  return g;
+}
 function createAgents(){
-  var deskPositions=[{x:-30,z:-25},{x:-30,z:-10},{x:-30,z:5},{x:-8,z:-25},{x:-8,z:-10},{x:-8,z:5}];
-  deskPositions.forEach(function(pos,i){var agent=createAgent(i);agent.position.set(pos.x,0,pos.z+1.5);scene.add(agent);agents.push(agent);});
+  DESK_POSITIONS.forEach(function(pos,i){var agent=createAgent(i);agent.position.set(pos.x,0,pos.z+1.5);scene.add(agent);agents.push(agent);});
 }
 function updateAgentStatus(agent,status,data){
   var ring=agent.userData.statusRing;var color=STATUS_COLORS[status]||STATUS_COLORS.idle;
@@ -712,6 +722,6 @@ function animate(){requestAnimationFrame(animate);var time=performance.now()*0.0
 function initWeather(){var city=localStorage.getItem("ducklabs_city")||"Huber Heights,OH";document.getElementById("wx-city").textContent=city;fetchWx(city);setInterval(function(){fetchWx(city);},600000);document.getElementById("wx-city-wrap").addEventListener("click",function(){var f=document.getElementById("wx-edit");f.style.display=f.style.display==="block"?"none":"block";if(f.style.display==="block"){document.getElementById("wx-city-input").value=city;document.getElementById("wx-city-input").focus();}});document.getElementById("wx-save-btn").addEventListener("click",function(){var v=document.getElementById("wx-city-input").value.trim();if(v){city=v;localStorage.setItem("ducklabs_city",city);document.getElementById("wx-city").textContent=city;document.getElementById("wx-edit").style.display="none";fetchWx(city);}});document.getElementById("wx-city-input").addEventListener("keydown",function(e){if(e.key==="Enter")document.getElementById("wx-save-btn").click();if(e.key==="Escape")document.getElementById("wx-edit").style.display="none";});document.getElementById("settings-btn").addEventListener("click",function(){document.body.classList.toggle("panels-hidden");});}
 function fetchWx(city){var icons={"Clear":"&#9728;","Sunny":"&#9728;","Partly cloudy":"&#127784;","Cloudy":"&#9729;","Overcast":"&#9729;","Mist":"&#127787;","Fog":"&#127787;","Light rain":"&#127783;","Moderate rain":"&#127783;","Heavy rain":"&#127783;","Rain":"&#127783;","Light snow":"&#127784;","Snow":"&#127784;","Thunderstorm":"&#9928;","Light drizzle":"&#127782;","drizzle":"&#127782;"};function icon(d){var k=(d||"").split(",")[0].trim();return icons[k]||"&#127777;";}fetch("https://wttr.in/"+encodeURIComponent(city)+"?format=j1",{signal:AbortSignal.timeout(5000)}).then(function(r){if(!r.ok)throw"bad";return r.json();}).then(function(j){var c=j.current_condition[0];document.getElementById("wx-content").innerHTML="<div class=\'wx-main\'><span class=\'wx-emoji\'>"+icon(c.weatherDesc[0].value)+"</span><span class=\'wx-temp\'>"+c.temp_C+"C</span></div><div class=\'wx-desc\'>"+c.weatherDesc[0].value+"</div><div class=\'wx-detail\'>&#128167; "+c.humidity+"% humidity &#127788; "+c.windspeedKmph+" km/h</div>";}).catch(function(e){document.getElementById("wx-content").innerHTML="<div class=\'wx-error\'>Weather unavailable</div><div class=\'wx-detail\'>Click city to change</div>";});}
 try{init();console.log('OFFICE: init complete');}catch(e){var err='<div style="position:fixed;top:0;left:0;background:#300;color:#fff;padding:20px;font-family:monospace;z-index:9999">ERROR: '+e.message+'</div>';document.body.insertAdjacentHTML('beforeend',err);}
-<\/script>
+</script>
 </body>
 </html>
