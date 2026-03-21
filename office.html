@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>Huber Heights HQ - Duckets' OpenClaw Office</title>
+<title>OpenClaw Agent Office - Isometric 3D</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 body{overflow:hidden;background:#0a0a0f;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif}
@@ -46,22 +46,20 @@ canvas{display:block}
 <div class="info-row"><span class="info-label">Tokens</span><span class="info-value" id="agent-tokens">-</span></div>
 <div class="info-row"><span class="info-label">Task</span><span class="info-value" id="agent-task">-</span></div>
 </div>
-<div id="activity-ticker"><div id="ticker-content">Huber Heights HQ initialized - Powered by DuckBot on Ryan's Mac mini</div></div>
-<div id="legend"><h4>Huber Heights HQ Zones</h4>
-<div class="legend-item"><div class="legend-color" style="background:#4488ff"></div> Duckets' Lab</div>
-<div class="legend-item"><div class="legend-color" style="background:#00ccff"></div> Grow Room</div>
+<div id="activity-ticker"><div id="ticker-content">OpenClaw Agent Office initialized</div></div>
+<div id="legend"><h4>Office Zones</h4>
+<div class="legend-item"><div class="legend-color" style="background:#4488ff"></div> Main Office</div>
+<div class="legend-item"><div class="legend-color" style="background:#00ccff"></div> Server Room</div>
 <div class="legend-item"><div class="legend-color" style="background:#ff44aa"></div> Gaming Lounge</div>
 <div class="legend-item"><div class="legend-color" style="background:#ff8844"></div> Kitchen</div>
 <div class="legend-item"><div class="legend-color" style="background:#44ff88"></div> Rooftop</div>
-<div class="legend-item"><div class="legend-color" style="background:#ffcc00"></div> Command Center</div>
+<div class="legend-item"><div class="legend-color" style="background:#ffcc00"></div> Executive Office</div>
 <div class="legend-item"><div class="legend-color" style="background:#888888"></div> Supply Closet</div>
 <div class="legend-item"><div class="legend-color" style="background:#aaaaaa"></div> Hallway</div>
-<div class="legend-item"><div class="legend-color" style="background:#ffaa00"></div> RS Research Lab</div>
-<div class="legend-item"><div class="legend-color" style="background:#44aaff"></div> Meeting Room</div>
 </div>
 <div id="instructions">Drag to orbit / Scroll to zoom / Click agent</div>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"><\/script>
-<script src="https://cdn.jsdelivr.net/npm/three@0.134.0/examples/js/controls/OrbitControls.js"><\/script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.134.0/examples/js/controls/OrbitControls.js"></script>
 <script>
 
 
@@ -188,16 +186,6 @@ function createMainOffice(){
   add(g,mkBox(CONFIG.officeWidth,9,0.5,0x3a4555));L(g).position.set(0,4.5,-44);
   add(g,mkBox(0.5,9,CONFIG.officeDepth,0x3a4555));L(g).position.set(-44,4.5,0);
   add(g,mkBox(0.5,9,CONFIG.officeDepth,0x3a4555));L(g).position.set(44,4.5,0);
-  // Welcome sign - Huber Heights HQ
-  var welcomeG=new THREE.Group();
-  welcomeG.add(mkBox(6,1.5,0.15,0x222244,{emissive:0x112233,emissiveIntensity:0.3}));
-  welcomeG.add(mkBox(6.2,0.1,0.2,0x4488ff));welcomeG.children[welcomeG.children.length-1].position.y=0.7;
-  welcomeG.add(mkBox(6.2,0.1,0.2,0x4488ff));welcomeG.children[welcomeG.children.length-1].position.y=-0.7;
-  // Duck emoji representation - duck yellow beak
-  welcomeG.add(mkBox(0.3,0.15,0.2,0xffaa00));welcomeG.children[welcomeG.children.length-1].position.set(-2,0.1,0.1);
-  welcomeG.add(mkBox(0.4,0.08,0.18,0xffaa00));welcomeG.children[welcomeG.children.length-1].position.set(-1.7,0.05,0.1);
-  welcomeG.position.set(12,6,-43.6);g.add(welcomeG);
-  // "Huber Heights HQ" main monitor on first desk
   for(var i=0;i<6;i++){
     var wg=new THREE.Group();
     wg.add(mkBox(5,4,0.1,0x4488cc,{transparent:true,opacity:0.5,emissive:0x2244aa,emissiveIntensity:0.3}));
@@ -211,27 +199,9 @@ function createMainOffice(){
     add(dg,mkBox(4.5,0.2,2.5,0x4a3728,{roughness:0.7}));L(dg).position.y=1.5;
     [[-2,0.75,-1],[2,0.75,-1],[-2,0.75,1],[2,0.75,1]].forEach(function(p){add(dg,mkBox(0.2,1.5,0.2,0x333333));L(dg).position.set(p[0],p[1],p[2]);});
     var mon=createMonitor();mon.position.set(0,2.3,-0.5);dg.add(mon);officeObjects.monitors.push(mon);
-    // First desk = Huber Heights weather monitor (blue glow)
-    if(i===0){
-      mon.children[1].material.color.setHex(0x4488ff);
-      mon.children[1].material.emissive.setHex(0x4488ff);
-      mon.children[1].material.emissiveIntensity=1.2;
-    }
     add(dg,mkBox(1.2,0.1,0.4,0x2a2a2a));L(dg).position.set(0,1.65,0.5);
     add(dg,mkBox(0.2,0.1,0.3,0x2a2a2a));L(dg).position.set(1,1.65,0.5);
-    // Duck mug on first desk - duck yellow with D initial
-    if(i===0){
-      var duckMug=new THREE.Group();
-      duckMug.add(mkCyl(0.15,0.12,0.35,16,0xffcc00));L(duckMug).position.y=0.175;
-      // Handle - orange duck bill style
-      var handle=new THREE.Mesh(new THREE.TorusGeometry(0.1,0.03,8,16,Math.PI),mkMat(0xff8800));
-      handle.rotation.y=Math.PI/2;handle.position.set(0.18,0.15,0);duckMug.add(handle);
-      // D initial on mug
-      duckMug.add(mkBox(0.08,0.15,0.04,0xaa0000));L(duckMug).position.set(0,0.2,0.16);
-      duckMug.position.set(1.5,1.75,-0.8);dg.add(duckMug);officeObjects.mugs.push(duckMug);
-    } else {
-      var mug=createCoffeeMug();mug.position.set(1.5,1.75,-0.8);dg.add(mug);officeObjects.mugs.push(mug);
-    }
+    var mug=createCoffeeMug();mug.position.set(1.5,1.75,-0.8);dg.add(mug);officeObjects.mugs.push(mug);
     var lamp=createDeskLamp();lamp.position.set(-1.5,1.6,-0.5);dg.add(lamp);officeObjects.lamps.push(lamp);
     if(i%2===0){var plant=createPlant();plant.position.set(-1.5,1.6,0.8);dg.add(plant);officeObjects.plants.push(plant);}
     g.add(dg);officeObjects.desks.push(dg);
@@ -241,12 +211,6 @@ function createMainOffice(){
     add(g,mkBox(3.5,0.1,0.3,0xeeeeff,{emissive:0xeeeeff,emissiveIntensity:0.6}));L(g).position.set(x,8.9,z);
     var pl=new THREE.PointLight(0xeeeeff,0.4,10);pl.position.set(x,8.4,z);g.add(pl);
   }}
-  // "Duckets Lab" sign on wall
-  var labSign=new THREE.Group();
-  labSign.add(mkBox(8,2,0.15,0x223344,{emissive:0x112233,emissiveIntensity:0.2}));
-  labSign.add(mkBox(8.2,0.1,0.2,0xffaa00));labSign.children[labSign.children.length-1].position.y=0.95;
-  labSign.add(mkBox(8.2,0.1,0.2,0xffaa00));labSign.children[labSign.children.length-1].position.y=-0.95;
-  labSign.position.set(0,7,-43.6);g.add(labSign);
   scene.add(g);
 }
 function createHallway(){
@@ -264,21 +228,7 @@ function createHallway(){
     add(g,mkBox(5,0.1,0.3,0xffffff,{emissive:0xffffff,emissiveIntensity:0.7}));L(g).position.set(0,8.9,z);
     var pl=new THREE.PointLight(0xffffff,0.35,10);pl.position.set(0,8.4,z);g.add(pl);
   }
-  // "Welcome to Huber Heights HQ" arch/sign at hallway entrance
-  var archG=new THREE.Group();
-  archG.add(mkBox(10,0.4,0.3,0xff6600));archG.children[archG.children.length-1].position.set(0,8.8,26);
-  archG.add(mkBox(10,0.4,0.3,0xff6600));archG.children[archG.children.length-1].position.set(0,8.2,26);
-  archG.add(mkBox(0.4,0.6,0.3,0xff6600));archG.children[archG.children.length-1].position.set(-4.8,8.5,26);
-  archG.add(mkBox(0.4,0.6,0.3,0xff6600));archG.children[archG.children.length-1].position.set(4.8,8.5,26);
-  var welcomeSign=new THREE.Group();
-  welcomeSign.add(mkBox(8,2,0.2,0x112244,{emissive:0x0a1a33,emissiveIntensity:0.4}));
-  welcomeSign.add(mkBox(8.2,0.1,0.3,0xffaa00));welcomeSign.children[welcomeSign.children.length-1].position.y=0.95;
-  welcomeSign.add(mkBox(8.2,0.1,0.3,0xffaa00));welcomeSign.children[welcomeSign.children.length-1].position.y=-0.95;
-  // Duck emblem
-  welcomeSign.add(mkBox(0.4,0.2,0.25,0xffcc00));welcomeSign.children[welcomeSign.children.length-1].position.set(-3,0.1,0.15);
-  welcomeSign.add(mkBox(0.5,0.1,0.22,0xff8800));welcomeSign.children[welcomeSign.children.length-1].position.set(-2.5,0.05,0.15);
-  welcomeSign.position.set(0,7.5,26);g.add(welcomeSign);g.add(archG);
-  var doors=[{z:-18,label:'GROW ROOM',color:0x00ff44},{z:-6,label:'GAMING',color:0xff44aa},{z:8,label:'KITCHEN',color:0xff8844},{z:22,label:'SUPPLY',color:0x888888}];
+  var doors=[{z:-18,label:'SERVER',color:0x00ccff},{z:-6,label:'GAMING',color:0xff44aa},{z:8,label:'KITCHEN',color:0xff8844},{z:22,label:'SUPPLY',color:0x888888}];
   doors.forEach(function(d){
     add(g,mkBox(0.15,7,2.8,0x666666));L(g).position.set(-4.75,3.5,d.z);
     add(g,mkBox(0.1,6.5,2.4,0x885522));L(g).position.set(-4.65,3.5,d.z);
@@ -312,56 +262,42 @@ function createHallway(){
 }
 function createServerRoom(){
   var g=new THREE.Group();g.position.set(28,0,-25);roomGroups['server']=g;
-  // Dark grow tent floor
-  add(g,mkBox(22,0.4,18,0x1a1a1a));L(g).position.y=-0.2;
-  add(g,mkBox(22,0.3,18,0x0a0a0a));L(g).position.y=0.35;
+  add(g,mkBox(22,0.4,18,0x2a2a2a));L(g).position.y=-0.2;
+  add(g,mkBox(22,0.3,18,0x1e1e28));L(g).position.y=0.35;
   for(var x=-10;x<12;x+=2){for(var z=-8;z<10;z+=2){
-    var tile=new THREE.Mesh(new THREE.BoxGeometry(1.85,0.08,1.85),mkMat((x+z)%4===0?0x111108:0x0a0a06));tile.position.set(x,0.47,z);tile.receiveShadow=true;g.add(tile);
+    var tile=new THREE.Mesh(new THREE.BoxGeometry(1.85,0.08,1.85),mkMat(0x252530));tile.position.set(x,0.47,z);tile.receiveShadow=true;g.add(tile);
   }}
-  // Grow tent walls (dark green/gray)
-  add(g,mkBox(22,8,0.5,0x1a2a1a));L(g).position.set(0,4,-9);
-  add(g,mkBox(0.5,8,18,0x1a2a1a));L(g).position.set(11,4,0);
-  add(g,mkBox(0.5,3,6,0x1a2a1a));L(g).position.set(-11,6.5,5.5);
-  add(g,mkBox(0.5,3,6,0x1a2a1a));L(g).position.set(-11,1.5,-5.5);
-  // Grow lights - purple/pink spectrum
-  var gl1=new THREE.PointLight(0x8800ff,1.2,25);gl1.position.set(0,6,0);g.add(gl1);
-  var gl2=new THREE.PointLight(0xff0066,0.6,15);gl2.position.set(-5,4,-4);g.add(gl2);
-  var gl3=new THREE.PointLight(0x00ffaa,0.4,15);gl3.position.set(5,5,4);g.add(gl3);
-  // "GROW ROOM" sign
-  var growSign=new THREE.Group();
-  growSign.add(mkBox(6,1.5,0.15,0x112211,{emissive:0x002200,emissiveIntensity:0.4}));
-  growSign.add(mkBox(6.2,0.1,0.2,0x00ff44));growSign.children[growSign.children.length-1].position.y=0.7;
-  growSign.add(mkBox(6.2,0.1,0.2,0x00ff44));growSign.children[growSign.children.length-1].position.y=-0.7;
-  growSign.position.set(0,7,-8.6);g.add(growSign);
-  // Cannabis plants in grow tent
-  var plantPositions=[{x:-7,z:-4},{x:-7,z:2},{x:-3,z:-4},{x:-3,z:2},{x:1,z:-4},{x:1,z:2},{x:5,z:-4},{x:5,z:2},{x:9,z:-4},{x:9,z:2}];
-  plantPositions.forEach(function(pp,pi){
-    var plantG=new THREE.Group();
-    // Grow pot
-    plantG.add(mkCyl(0.4,0.3,0.5,12,0x8B4513));L(plantG).position.y=0.25;
-    plantG.add(mkCyl(0.3,0.2,0.3,12,0x654321));L(plantG).position.y=0.65;
-    // Main stem
-    plantG.add(mkCyl(0.05,0.08,1.5,8,0x228822));L(plantG).position.y=1.55;
-    // Fan leaves (large)
-    for(var fl=0;fl<4;fl++){var fanLeaf=new THREE.Mesh(new THREE.SphereGeometry(0.4,8,6),mkMat(0x228822));fanLeaf.scale.set(1,0.2,1);fanLeaf.position.set(Math.cos(fl/4*Math.PI*2)*0.3,1.5+fl*0.15,Math.sin(fl/4*Math.PI*2)*0.3);plantG.add(fanLeaf);}
-    // Sugar leaves
-    for(var sl=0;sl<6;sl++){var sLeaf=new THREE.Mesh(new THREE.SphereGeometry(0.15,6,4),mkMat(0x33aa33));sLeaf.scale.set(1,0.15,1);sLeaf.position.set(Math.cos(sl/6*Math.PI*2)*0.15,2.2+sl*0.05,Math.sin(sl/6*Math.PI*2)*0.15);plantG.add(sLeaf);}
-    plantG.position.set(pp.x,0.47,pp.z);g.add(plantG);
-  });
-  // Grow monitoring screen
-  var monG=new THREE.Group();
-  monG.add(mkBox(3,2,0.15,0x111111));L(monG).userData.isMonitor=true;
-  monG.add(mkBox(2.8,1.7,0.05,0x00aa44,{emissive:0x00ff55,emissiveIntensity:0.9}));L(monG).position.z=0.08;
-  monG.add(mkBox(0.3,0.8,0.1,0x222222));L(monG).position.set(0,0,0);L(monG).position.y=-0.6;
-  monG.position.set(9,3.5,-8.5);g.add(monG);officeObjects.monitors.push(L(monG));
-  // AC Infinity controller
-  var acG=new THREE.Group();
-  acG.add(mkBox(1.5,1,0.1,0x222233));L(acG).position.y=0.5;
-  acG.add(mkBox(1.3,0.7,0.05,0x33aaff,{emissive:0x33aaff,emissiveIntensity:0.5}));L(acG).position.z=0.06;
-  acG.position.set(5,3.5,-8.5);g.add(acG);
-  // Warning sign - grow room
+  add(g,mkBox(22,8,0.5,0x2a3545));L(g).position.set(0,4,-9);
+  add(g,mkBox(0.5,8,18,0x2a3545));L(g).position.set(11,4,0);
+  add(g,mkBox(0.5,3,6,0x2a3545));L(g).position.set(-11,6.5,5.5);
+  add(g,mkBox(0.5,3,6,0x2a3545));L(g).position.set(-11,1.5,-5.5);
+  var bl1=new THREE.PointLight(0x0066ff,1.0,25);bl1.position.set(0,6,0);g.add(bl1);
+  var bl2=new THREE.PointLight(0x0033aa,0.5,15);bl2.position.set(-5,4,-4);g.add(bl2);
+  for(var r=0;r<5;r++){
+    var rackG=new THREE.Group();
+    rackG.add(mkBox(1.2,6,2,0x111118));L(rackG).position.y=3;
+    rackG.add(mkBox(0.1,6,0.1,0x222230));L(rackG).position.set(-0.55,3,0);
+    rackG.add(mkBox(0.1,6,0.1,0x222230));L(rackG).position.set(0.55,3,0);
+    var ledColors=[0x00ff44,0x0088ff,0x00ff00,0xff8800,0x0088ff,0x00ff44];
+    for(var row=0;row<10;row++){
+      rackG.add(mkBox(0.8,0.04,0.05,0x001122,{emissive:0x001133,emissiveIntensity:0.5}));L(rackG).position.set(0,0.6+row*0.55,1.01);
+      for(var col=0;col<6;col++){
+        var lc=ledColors[col];
+        rackG.add(mkBox(0.08,0.08,0.04,lc,{emissive:lc,emissiveIntensity:1.0}));
+        L(rackG).position.set(-0.35+col*0.14,0.6+row*0.55,1.03);
+        L(rackG).userData.blinkLight=true;L(rackG).userData.blinkOffset=r*0.7+row*0.3+col*0.15;L(rackG).userData.blinkSpeed=1.5+Math.random()*2;
+        officeObjects.blinkLights.push(L(rackG));
+      }
+    }
+    for(var v=0;v<4;v++){rackG.add(mkBox(0.9,0.05,0.08,0x1a1a25));L(rackG).position.set(0,0.25,0.8+v*0.25);}
+    rackG.position.set(-8+r*4,0.47,-4);g.add(rackG);
+  }
+  for(var cx=-8;cx<=8;cx+=4){
+    g.add(mkBox(0.4,0.1,10,0x333340));L(g).position.set(cx,6.5,-2);
+    for(var cc=0;cc<3;cc++){g.add(mkCyl(0.02,0.02,0.4+Math.random()*0.3,6,0x222230));L(g).position.set(cx+(Math.random()-0.5)*0.2,6.2-cc*0.1,-2+(Math.random()-0.5)*3);}
+  }
   var warnG=new THREE.Group();
-  warnG.add(mkBox(1.5,1.0,0.1,0x00cc00,{emissive:0x00cc00,emissiveIntensity:0.3}));
+  warnG.add(mkBox(1.5,1.0,0.1,0xffcc00,{emissive:0xffcc00,emissiveIntensity:0.3}));
   warnG.add(mkBox(0.3,0.3,0.12,0x111111));L(warnG).position.set(-0.4,0.2,0);
   warnG.add(mkBox(0.3,0.3,0.12,0x111111));L(warnG).position.set(0.4,0.2,0);
   warnG.position.set(5,5,-8.5);g.add(warnG);
@@ -407,27 +343,6 @@ function createGamingLounge(){
     bbG.add(mkBox(1.0,0.2,1.0,bbColors[bb]));L(bbG).position.y=0.1;
     bbG.position.set(-2+bb*2,0,5);g.add(bbG);
   }
-  // RuneScape poster on wall
-  var rsPosterG=new THREE.Group();
-  rsPosterG.add(mkBox(3,4,0.1,0x1a1a2e,{emissive:0x0a0a1e,emissiveIntensity:0.2}));
-  rsPosterG.add(mkBox(3.2,0.1,0.15,0xffcc00));rsPosterG.children[rsPosterG.children.length-1].position.y=1.95;
-  rsPosterG.add(mkBox(3.2,0.1,0.15,0xffcc00));rsPosterG.children[rsPosterG.children.length-1].position.y=-1.95;
-  // Dragon silhouette boxes
-  rsPosterG.add(mkBox(0.5,0.8,0.05,0xcc0000));rsPosterG.children[rsPosterG.children.length-1].position.set(-0.5,0.5,0.05);
-  rsPosterG.add(mkBox(0.3,0.6,0.05,0xcc0000));rsPosterG.children[rsPosterG.children.length-1].position.set(-0.3,1.0,0.05);
-  rsPosterG.add(mkBox(0.3,0.6,0.05,0xcc0000));rsPosterG.children[rsPosterG.children.length-1].position.set(-0.7,1.0,0.05);
-  rsPosterG.position.set(9.6,5,0);g.add(rsPosterG);
-  // Gaming reference poster - pixel art style
-  var gamePosterG=new THREE.Group();
-  gamePosterG.add(mkBox(2.5,3,0.1,0x002244,{emissive:0x001133,emissiveIntensity:0.2}));
-  gamePosterG.add(mkBox(2.7,0.1,0.15,0x00ff88));gamePosterG.children[gamePosterG.children.length-1].position.y=1.45;
-  gamePosterG.add(mkBox(2.7,0.1,0.15,0x00ff88));gamePosterG.children[gamePosterG.children.length-1].position.y=-1.45;
-  gamePosterG.position.set(-9.6,5,0);g.add(gamePosterG);
-  // GP sign
-  var gpSign=new THREE.Group();
-  gpSign.add(mkBox(2,0.8,0.1,0x112200,{emissive:0x0a1100,emissiveIntensity:0.5}));
-  gpSign.add(mkBox(1.8,0.5,0.05,0x00cc44,{emissive:0x00ff00,emissiveIntensity:0.8}));gpSign.children[gpSign.children.length-1].position.z=0.08;
-  gpSign.position.set(9.6,2.5,0);g.add(gpSign);
   scene.add(g);
 }
 function createKitchen(){
@@ -551,55 +466,37 @@ function createRooftop(){
 }
 function createExecutiveOffice(){
   var g=new THREE.Group();g.position.set(-30,0,-20);roomGroups['executive']=g;
-  add(g,mkBox(16,0.5,12,0x2a3a4a));L(g).position.y=-0.25;
-  // Huber Heights-themed rug - blue/orange
-  add(g,mkBox(10,0.08,8,0x2244aa));L(g).position.y=0.04;
-  add(g,mkBox(10.5,0.06,8.5,0xff6600));L(g).position.y=0.04;
-  for(var rx=-4;rx<=4;rx+=2){for(var rz=-3;rz<=3;rz+=2){g.add(mkBox(0.8,0.09,0.8,0xff8800));L(g).position.set(rx,0.05,rz);}}
-  add(g,mkBox(16,9,0.5,0x334455));L(g).position.set(0,4.5,-6);
-  add(g,mkBox(0.5,9,12,0x334455));L(g).position.set(-8,4.5,0);
-  add(g,mkBox(0.5,9,12,0x334455));L(g).position.set(8,4.5,0);
-  // "COMMAND CENTER" sign
-  var ccSign=new THREE.Group();
-  ccSign.add(mkBox(7,1.8,0.15,0x112233,{emissive:0x0a1a2e,emissiveIntensity:0.3}));
-  ccSign.add(mkBox(7.2,0.1,0.2,0xff6600));ccSign.children[ccSign.children.length-1].position.y=0.85;
-  ccSign.add(mkBox(7.2,0.1,0.2,0xff6600));ccSign.children[ccSign.children.length-1].position.y=-0.85;
-  ccSign.position.set(0,7,-5.6);g.add(ccSign);
-  // Duckets badge/emblem
-  var duckG=new THREE.Group();
-  duckG.add(mkSphere(0.4,12,0xffcc00));L(duckG).position.y=0.4;
-  duckG.add(mkBox(0.6,0.15,0.3,0xff8800));L(duckG).position.set(0,0.25,0.4);
-  duckG.add(mkSphere(0.15,8,0x111111));L(duckG).position.set(-0.1,0.55,0.3);
-  duckG.add(mkSphere(0.15,8,0x111111));L(duckG).position.set(0.1,0.55,0.3);
-  duckG.position.set(0,1.8,1.6);g.add(duckG);
+  add(g,mkBox(16,0.5,12,0x4a5a6a));L(g).position.y=-0.25;
+  add(g,mkBox(10,0.08,8,0x882244));L(g).position.y=0.04;
+  add(g,mkBox(10.5,0.06,8.5,0xaa3355));L(g).position.y=0.04;
+  for(var rx=-4;rx<=4;rx+=2){for(var rz=-3;rz<=3;rz+=2){g.add(mkBox(0.8,0.09,0.8,0xcc4466));L(g).position.set(rx,0.05,rz);}}
+  add(g,mkBox(16,9,0.5,0x3a4555));L(g).position.set(0,4.5,-6);
+  add(g,mkBox(0.5,9,12,0x3a4555));L(g).position.set(-8,4.5,0);
+  add(g,mkBox(0.5,9,12,0x3a4555));L(g).position.set(8,4.5,0);
   var deskG=new THREE.Group();
-  deskG.add(mkBox(7,0.3,3.5,0x1a1a2e,{roughness:0.4}));L(deskG).position.y=1.5;
-  deskG.add(mkBox(7,1.2,0.15,0x1a1a2e));L(deskG).position.set(0,0.75,1.7);
+  deskG.add(mkBox(7,0.3,3.5,0x3d2817,{roughness:0.4}));L(deskG).position.y=1.5;
+  deskG.add(mkBox(7,1.2,0.15,0x3d2817));L(deskG).position.set(0,0.75,1.7);
   [[-3,0.75,-1.5],[3,0.75,-1.5],[-3,0.75,1.5],[3,0.75,1.5]].forEach(function(p){deskG.add(mkBox(0.2,1.5,0.2,0x333333));L(deskG).position.set(p[0],p[1],p[2]);});
   for(var mi=0;mi<2;mi++){
     var mon=createMonitor();mon.position.set(-0.8+mi*1.6,2.3,-0.5);mon.scale.set(0.9,0.9,0.9);deskG.add(mon);officeObjects.monitors.push(mon);
   }
-  deskG.add(mkBox(2.5,0.12,0.4,0x1a1a2e));L(deskG).position.set(0,1.67,-0.8);
-  // Nameplate - Duckets
-  deskG.add(mkBox(1.5,0.5,0.15,0x334455));L(deskG).position.set(0,1.88,-0.8);L(deskG).userData.isNameplate=true;
-  deskG.add(mkBox(0.08,0.3,0.16,0xff6600));L(deskG).position.set(-0.3,1.88,0.0);
+  deskG.add(mkBox(2.5,0.12,0.4,0x2a2a2a));L(deskG).position.set(0,1.67,-0.8);
+  deskG.add(mkBox(1.2,0.6,0.1,0x886633));L(deskG).position.set(0,1.95,-0.8);L(deskG).userData.isNameplate=true;
   deskG.position.set(0,0,-3);g.add(deskG);
   var sofaG=new THREE.Group();
-  sofaG.add(mkBox(4,0.8,1.5,0x2244aa));L(sofaG).position.y=0.4;
-  sofaG.add(mkBox(4,0.6,0.2,0x2244aa));L(sofaG).position.set(0,0.7,-0.65);
-  sofaG.add(mkBox(0.2,0.5,1.5,0x2244aa));L(sofaG).position.set(-1.9,0.45,0);
-  sofaG.add(mkBox(0.2,0.5,1.5,0x2244aa));L(sofaG).position.set(1.9,0.45,0);
+  sofaG.add(mkBox(4,0.8,1.5,0x1a1a2e));L(sofaG).position.y=0.4;
+  sofaG.add(mkBox(4,0.6,0.2,0x1a1a2e));L(sofaG).position.set(0,0.7,-0.65);
+  sofaG.add(mkBox(0.2,0.5,1.5,0x1a1a2e));L(sofaG).position.set(-1.9,0.45,0);
+  sofaG.add(mkBox(0.2,0.5,1.5,0x1a1a2e));L(sofaG).position.set(1.9,0.45,0);
   sofaG.position.set(-4,0,3);g.add(sofaG);
   var lampG=new THREE.Group();
   lampG.add(mkCyl(0.2,0.25,0.1,16,0x444444));lampG.add(mkCyl(0.04,0.04,1.5,8,0x555555));L(lampG).position.y=0.8;
   lampG.add(mkCyl(0.3,0.15,0.5,16,0x888866,{emissive:0xffffaa,emissiveIntensity:0.4}));L(lampG).position.y=1.6;L(lampG).rotation.x=0.3;lampG.userData.isLamp=true;lampG.userData.lampMesh=L(lampG);
   lampG.position.set(5,0,3);g.add(lampG);officeObjects.lamps.push(lampG);
-  // AI model books
   var bookG=new THREE.Group();
-  bookG.add(mkBox(5,0.1,3,0x1a1a2e));L(bookG).position.y=0.05;
-  var bookTitles=['Qwen3.5','MiniMax','Kimi-K2','GLM-5','Bailian','OpenClaw','Claude','Gemini','RS-API','GP Guide','OH-45424','DuckBot'];
+  bookG.add(mkBox(5,0.1,3,0x4a3728));L(bookG).position.y=0.05;
   for(var bi=0;bi<12;bi++){
-    var bc=[0xcc3333,0x3333cc,0x33cc33,0xcccc33,0xcc33cc,0x33cccc,0x995522,0x339933,0x993399,0xcc6633,0x6633cc,0xffaa00][bi];
+    var bc=[0xcc3333,0x3333cc,0x33cc33,0xcccc33,0xcc33cc,0x33cccc,0x995522,0x339933,0x993399,0xcc6633,0x6633cc,0x33cc99][bi];
     bookG.add(mkBox(0.3,1.8,0.1,bc));L(bookG).position.set(-2.1+bi*0.35,1.0,0);L(bookG).userData.isBook=true;
   }
   bookG.position.set(5,0,-5);g.add(bookG);
@@ -663,56 +560,31 @@ function createLoungeArea(){
   ctG.position.set(0,0,1);g.add(ctG);
   var lPlant=createPlant();lPlant.scale.set(1.5,1.5,1.5);lPlant.position.set(5,0,-4);g.add(lPlant);officeObjects.plants.push(lPlant);
   var lPlant2=createPlant();lPlant2.scale.set(1.2,1.2,1.2);lPlant2.position.set(-5,0,-4);g.add(lPlant2);officeObjects.plants.push(lPlant2);
-  // Huber Heights OG plant label - special pot
-  var huberPlantG=new THREE.Group();
-  huberPlantG.add(mkCyl(0.6,0.5,0.8,12,0x8B4513));L(huberPlantG).position.y=0.4;
-  // Label on pot
-  huberPlantG.add(mkBox(0.8,0.3,0.05,0xffcc00,{emissive:0xffcc00,emissiveIntensity:0.3}));L(huberPlantG).position.set(0,0.55,0.55);
-  for(var ll=0;ll<6;ll++){var hLeaf=new THREE.Mesh(new THREE.SphereGeometry(0.35,8,8),mkMat(0x228B22));hLeaf.scale.y=1.4;hLeaf.position.set(Math.cos(ll/6*Math.PI*2)*0.2,1.0+ll*0.1,Math.sin(ll/6*Math.PI*2)*0.2);huberPlantG.add(hLeaf);}
-  huberPlantG.position.set(0,0,4);g.add(huberPlantG);
   scene.add(g);
 }
 function createMeetingRoom(){
   var g=new THREE.Group();g.position.set(-30,0,10);roomGroups['meeting']=g;
-  // RuneScape-themed floor - gold and brown
-  add(g,mkBox(12,0.5,10,0x3d2817));L(g).position.y=-0.25;
-  for(var x=-5;x<7;x+=2){for(var z=-4;z<6;z+=2){var tile=new THREE.Mesh(new THREE.BoxGeometry(1.9,0.06,1.9),mkMat((x+z)%4===0?0x5a3a1a:0x4a2a10));tile.position.set(x,0.03,z);tile.receiveShadow=true;g.add(tile);}}
-  add(g,mkBox(12,8,0.5,0x4a3020));L(g).position.set(0,4.5,-5);
-  add(g,mkBox(0.5,8,10,0x4a3020));L(g).position.set(-6,4.5,0);
-  add(g,mkBox(0.5,8,10,0x4a3020));L(g).position.set(6,4.5,0);
-  // RuneScape Research Lab sign
-  var rsSign=new THREE.Group();
-  rsSign.add(mkBox(7,1.8,0.15,0x1a1a2e,{emissive:0x0a0a1e,emissiveIntensity:0.3}));
-  rsSign.add(mkBox(7.2,0.1,0.2,0xffcc00));rsSign.children[rsSign.children.length-1].position.y=0.85;
-  rsSign.add(mkBox(7.2,0.1,0.2,0xffcc00));rsSign.children[rsSign.children.length-1].position.y=-0.85;
-  rsSign.position.set(0,7,-4.6);g.add(rsSign);
-  // GP counter display on wall
-  var gpDisplay=new THREE.Group();
-  gpDisplay.add(mkBox(4,1.5,0.15,0x111122,{emissive:0x000011,emissiveIntensity:0.5}));
-  gpDisplay.add(mkBox(3.8,1.1,0.05,0x00aa44,{emissive:0x00cc55,emissiveIntensity:0.8}));gpDisplay.children[gpDisplay.children.length-1].position.z=0.1;
-  gpDisplay.position.set(0,5,-4.7);g.add(gpDisplay);
+  add(g,mkBox(12,0.5,10,0x4a5a6a));L(g).position.y=-0.25;
+  for(var x=-5;x<7;x+=2){for(var z=-4;z<6;z+=2){var light=(Math.floor(x/2)+Math.floor(z/2))%2===0;var tile=new THREE.Mesh(new THREE.BoxGeometry(1.9,0.06,1.9),mkMat(light?0x3e3e50:0x363645));tile.position.set(x,0.03,z);tile.receiveShadow=true;g.add(tile);}}
+  add(g,mkBox(12,8,0.5,0x3a4555));L(g).position.set(0,4.5,-5);
+  add(g,mkBox(0.5,8,10,0x3a4555));L(g).position.set(-6,4.5,0);
+  add(g,mkBox(0.5,8,10,0x3a4555));L(g).position.set(6,4.5,0);
   var mtG=new THREE.Group();
-  mtG.add(mkBox(6,0.15,3,0x6B4226));L(mtG).position.y=1.0;
+  mtG.add(mkBox(6,0.15,3,0x4a3728));L(mtG).position.y=1.0;
   [[-2.5,0.5,-1.2],[2.5,0.5,-1.2],[-2.5,0.5,1.2],[2.5,0.5,1.2]].forEach(function(p){mtG.add(mkBox(0.15,1,0.15,0x333333));L(mtG).position.set(p[0],p[1],p[2]);});
   for(var mc=0;mc<6;mc++){
     var angle=(mc/6)*Math.PI*2;var mChair=new THREE.Group();
-    mChair.add(mkBox(0.9,0.12,0.9,0x4a3020));L(mChair).position.y=0.8;
-    mChair.add(mkBox(0.9,0.7,0.12,0x4a3020));L(mChair).position.set(0,1.15,-0.4);
+    mChair.add(mkBox(0.9,0.12,0.9,0x2a2a4a));L(mChair).position.y=0.8;
+    mChair.add(mkBox(0.9,0.7,0.12,0x2a2a4a));L(mChair).position.set(0,1.15,-0.4);
     mChair.add(mkCyl(0.05,0.05,0.8,8,0x555555));L(mChair).position.y=0.4;
     mChair.position.set(Math.cos(angle)*2.5,0,Math.sin(angle)*2.5);mChair.rotation.y=-angle;
     mtG.add(mChair);
   }
   mtG.position.set(0,0,0);g.add(mtG);
-  // RuneScape quest scroll on table
-  var scrollG=new THREE.Group();
-  scrollG.add(mkBox(1.5,0.08,2,0xddcc99));L(scrollG).position.y=1.12;
-  scrollG.add(mkCyl(0.05,0.05,1.6,8,0xaa8844));L(scrollG).rotation.z=Math.PI/2;L(scrollG).position.set(0,1.15,-0.9);
-  scrollG.add(mkCyl(0.05,0.05,1.6,8,0xaa8844));L(scrollG).rotation.z=Math.PI/2;L(scrollG).position.set(0,1.15,0.9);
-  mtG.add(scrollG);
   var wbG=new THREE.Group();
-  wbG.add(mkBox(5,3,0.1,0x2a1a0a,{emissive:0x1a0a00,emissiveIntensity:0.2}));L(wbG).userData.isWhiteboard=true;
-  wbG.add(mkBox(5.3,0.1,0.2,0x886633));L(wbG).position.y=1.55;
-  wbG.add(mkBox(5.3,0.1,0.2,0x886633));L(wbG).position.y=-1.55;
+  wbG.add(mkBox(5,3,0.1,0xffffff,{roughness:0.5}));L(wbG).userData.isWhiteboard=true;
+  wbG.add(mkBox(5.3,0.1,0.2,0x666666));L(wbG).position.y=1.55;
+  wbG.add(mkBox(5.3,0.1,0.2,0x666666));L(wbG).position.y=-1.55;
   wbG.position.set(0,4.5,-4.8);g.add(wbG);
   scene.add(g);
 }
@@ -796,11 +668,11 @@ function updateFromGateway(data){
   if(activityEvents.length>0)updateTicker(activityEvents);
 }
 function updateDemoAgents(){
-  var statuses=['active','idle','thinking','active','idle','active'];var names=['DuckBot','Qwen3.5-Agent','MiniMax-Agent','Kimi-Agent','GLM-Agent','RS-Bot'];var tasks=['Processing messages','qwen3.5 reasoning','MiniMax M2.7 idle','kimi-k2.5 vision','GLM-5 coding','RS-API research'];
-  agents.forEach(function(agent,i){var models=['bailian/qwen3.5-plus','bailian/MiniMax-M2.5','bailian/kimi-k2.5','bailian/glm-5','bailian/MiniMax-M2.7','bailian/qwen3.5'];updateAgentStatus(agent,statuses[i],{name:names[i],model:models[i],tokens:Math.floor(Math.random()*50000),task:tasks[i]});});
+  var statuses=['active','idle','thinking','active','idle','active'];var names=['DuckBot','ResearchBot','CodeBot','TaskBot','MonitorBot','HelperBot'];var tasks=['Processing messages','Waiting for tasks','Analyzing patterns','Running jobs','Monitoring health','Assisting queries'];
+  agents.forEach(function(agent,i){updateAgentStatus(agent,statuses[i],{name:names[i],model:'bailian/qwen3.5-plus',tokens:Math.floor(Math.random()*50000),task:tasks[i]});});
   if(Math.random()>0.7){var events=[{agent:names[Math.floor(Math.random()*names.length)],action:tasks[Math.floor(Math.random()*tasks.length)],time:new Date().toLocaleTimeString()}];updateTicker(events);}
 }
-function updateConnectionStatus(connected){var statusEl=document.getElementById('connection-status');var textEl=document.getElementById('status-text');if(connected){statusEl.classList.remove('disconnected');textEl.textContent='Live - OpenClaw Gateway';}else{statusEl.classList.add('disconnected');textEl.textContent='Demo - Huber Heights HQ';}}
+function updateConnectionStatus(connected){var statusEl=document.getElementById('connection-status');var textEl=document.getElementById('status-text');if(connected){statusEl.classList.remove('disconnected');textEl.textContent='Live - Gateway Connected';}else{statusEl.classList.add('disconnected');textEl.textContent='Demo Mode (Gateway Offline)';}}
 function updateTicker(events){var tickerContent=document.getElementById('ticker-content');var messages=events.map(function(e){return e.agent+': '+e.action+' ('+e.time+')';}).join(' | ');tickerContent.textContent=messages+' | '+tickerContent.textContent.split(' | ').slice(0,3).join(' | ');}
 function onMouseClick(event){
   var rect=renderer.domElement.getBoundingClientRect();mouse.x=((event.clientX-rect.left)/rect.width)*2-1;mouse.y=-((event.clientY-rect.top)/rect.height)*2+1;
@@ -823,6 +695,6 @@ function onWindowResize(){var aspect=window.innerWidth/window.innerHeight;camera
 function onTimeChange(event){timeOfDay=parseFloat(event.target.value);updateLighting();}
 function animate(){requestAnimationFrame(animate);var time=performance.now()*0.001;controls.update();updateAnimations(time);updateLighting();renderer.render(scene,camera);}
 try{init();console.log('OFFICE: init complete');}catch(e){document.body.insertAdjacentHTML('beforeend','<div style="position:fixed;top:0;left:0;background:#300;color:#fff;padding:20px;font-family:monospace;z-index:9999">ERROR: '+e.message+'<pre>'+e.stack+'</pre></div>');}
-<\/script>
+</script>
 </body>
 </html>
