@@ -322,7 +322,7 @@ function createGamingLounge(){
   add(g,mkBox(0.5,8,16,0x3a3a50));L(g).position.set(10,4,0);
   add(g,mkBox(0.5,8,16,0x3a3a50));L(g).position.set(-10,4,0);
   var neonColors=[0xff00aa,0x00ffff];
-  for(var n=0;n<4;n++){var nc=neonColors[n%2];g.add(mkBox(16,0.12,0.2,nc,{emissive:nc,emissiveIntensity:1.0}));L(g).position.set(0,8.8,-5+n*3.5);var nl=new THREE.PointLight(nc,0.6,8);nl.position.set(0,8.4,-5+n*3.5);g.add(nl);officeObjects.neonStrips.push({mesh:L(g),color:nc,phase:n*0.8});}
+  for(var n=0;n<4;n++){var nc=neonColors[n%2];var nl=new THREE.PointLight(nc,0.6,8);nl.position.set(0,8.4,-5+n*3.5);g.add(nl);g.add(mkBox(16,0.12,0.2,nc,{emissive:nc,emissiveIntensity:1.0}));L(g).position.set(0,8.8,-5+n*3.5);officeObjects.neonStrips.push({mesh:L(g),color:nc,phase:n*0.8});}
   var arcadeG=new THREE.Group();
   arcadeG.add(mkBox(1.2,5,1.5,0x220033));L(arcadeG).position.y=2.5;
   arcadeG.add(mkBox(1.0,1.2,0.1,0x111111));L(arcadeG).position.set(0,3.2,0.76);
@@ -1048,7 +1048,7 @@ function createGamingLounge(){
   add(g,mkBox(0.5,8,16,0x3a3a50));L(g).position.set(10,4,0);
   add(g,mkBox(0.5,8,16,0x3a3a50));L(g).position.set(-10,4,0);
   var neonColors=[0xff00aa,0x00ffff];
-  for(var n=0;n<4;n++){var nc=neonColors[n%2];g.add(mkBox(16,0.12,0.2,nc,{emissive:nc,emissiveIntensity:1.0}));L(g).position.set(0,8.8,-5+n*3.5);var nl=new THREE.PointLight(nc,0.6,8);nl.position.set(0,8.4,-5+n*3.5);g.add(nl);officeObjects.neonStrips.push({mesh:L(g),color:nc,phase:n*0.8});}
+  for(var n=0;n<4;n++){var nc=neonColors[n%2];var nl=new THREE.PointLight(nc,0.6,8);nl.position.set(0,8.4,-5+n*3.5);g.add(nl);g.add(mkBox(16,0.12,0.2,nc,{emissive:nc,emissiveIntensity:1.0}));L(g).position.set(0,8.8,-5+n*3.5);officeObjects.neonStrips.push({mesh:L(g),color:nc,phase:n*0.8});}
   var arcadeG=new THREE.Group();
   arcadeG.add(mkBox(1.2,5,1.5,0x220033));L(arcadeG).position.y=2.5;
   arcadeG.add(mkBox(1.0,1.2,0.1,0x111111));L(arcadeG).position.set(0,3.2,0.76);
@@ -1774,7 +1774,7 @@ function createGamingLounge(){
   add(g,mkBox(0.5,8,16,0x3a3a50));L(g).position.set(10,4,0);
   add(g,mkBox(0.5,8,16,0x3a3a50));L(g).position.set(-10,4,0);
   var neonColors=[0xff00aa,0x00ffff];
-  for(var n=0;n<4;n++){var nc=neonColors[n%2];g.add(mkBox(16,0.12,0.2,nc,{emissive:nc,emissiveIntensity:1.0}));L(g).position.set(0,8.8,-5+n*3.5);var nl=new THREE.PointLight(nc,0.6,8);nl.position.set(0,8.4,-5+n*3.5);g.add(nl);officeObjects.neonStrips.push({mesh:L(g),color:nc,phase:n*0.8});}
+  for(var n=0;n<4;n++){var nc=neonColors[n%2];var nl=new THREE.PointLight(nc,0.6,8);nl.position.set(0,8.4,-5+n*3.5);g.add(nl);g.add(mkBox(16,0.12,0.2,nc,{emissive:nc,emissiveIntensity:1.0}));L(g).position.set(0,8.8,-5+n*3.5);officeObjects.neonStrips.push({mesh:L(g),color:nc,phase:n*0.8});}
   var arcadeG=new THREE.Group();
   arcadeG.add(mkBox(1.2,5,1.5,0x220033));L(arcadeG).position.y=2.5;
   arcadeG.add(mkBox(1.0,1.2,0.1,0x111111));L(arcadeG).position.set(0,3.2,0.76);
@@ -2500,7 +2500,7 @@ function createGamingLounge(){
   add(g,mkBox(0.5,8,16,0x3a3a50));L(g).position.set(10,4,0);
   add(g,mkBox(0.5,8,16,0x3a3a50));L(g).position.set(-10,4,0);
   var neonColors=[0xff00aa,0x00ffff];
-  for(var n=0;n<4;n++){var nc=neonColors[n%2];g.add(mkBox(16,0.12,0.2,nc,{emissive:nc,emissiveIntensity:1.0}));L(g).position.set(0,8.8,-5+n*3.5);var nl=new THREE.PointLight(nc,0.6,8);nl.position.set(0,8.4,-5+n*3.5);g.add(nl);officeObjects.neonStrips.push({mesh:L(g),color:nc,phase:n*0.8});}
+  for(var n=0;n<4;n++){var nc=neonColors[n%2];var nl=new THREE.PointLight(nc,0.6,8);nl.position.set(0,8.4,-5+n*3.5);g.add(nl);g.add(mkBox(16,0.12,0.2,nc,{emissive:nc,emissiveIntensity:1.0}));L(g).position.set(0,8.8,-5+n*3.5);officeObjects.neonStrips.push({mesh:L(g),color:nc,phase:n*0.8});}
   var arcadeG=new THREE.Group();
   arcadeG.add(mkBox(1.2,5,1.5,0x220033));L(arcadeG).position.y=2.5;
   arcadeG.add(mkBox(1.0,1.2,0.1,0x111111));L(arcadeG).position.set(0,3.2,0.76);
@@ -3218,7 +3218,7 @@ function createGamingLounge(){
   add(g,mkBox(0.5,8,16,0x3a3a50));L(g).position.set(10,4,0);
   add(g,mkBox(0.5,8,16,0x3a3a50));L(g).position.set(-10,4,0);
   var neonColors=[0xff00aa,0x00ffff];
-  for(var n=0;n<4;n++){var nc=neonColors[n%2];g.add(mkBox(16,0.12,0.2,nc,{emissive:nc,emissiveIntensity:1.0}));L(g).position.set(0,8.8,-5+n*3.5);var nl=new THREE.PointLight(nc,0.6,8);nl.position.set(0,8.4,-5+n*3.5);g.add(nl);officeObjects.neonStrips.push({mesh:L(g),color:nc,phase:n*0.8});}
+  for(var n=0;n<4;n++){var nc=neonColors[n%2];var nl=new THREE.PointLight(nc,0.6,8);nl.position.set(0,8.4,-5+n*3.5);g.add(nl);g.add(mkBox(16,0.12,0.2,nc,{emissive:nc,emissiveIntensity:1.0}));L(g).position.set(0,8.8,-5+n*3.5);officeObjects.neonStrips.push({mesh:L(g),color:nc,phase:n*0.8});}
   var arcadeG=new THREE.Group();
   arcadeG.add(mkBox(1.2,5,1.5,0x220033));L(arcadeG).position.y=2.5;
   arcadeG.add(mkBox(1.0,1.2,0.1,0x111111));L(arcadeG).position.set(0,3.2,0.76);
@@ -3944,7 +3944,7 @@ function createGamingLounge(){
   add(g,mkBox(0.5,8,16,0x3a3a50));L(g).position.set(10,4,0);
   add(g,mkBox(0.5,8,16,0x3a3a50));L(g).position.set(-10,4,0);
   var neonColors=[0xff00aa,0x00ffff];
-  for(var n=0;n<4;n++){var nc=neonColors[n%2];g.add(mkBox(16,0.12,0.2,nc,{emissive:nc,emissiveIntensity:1.0}));L(g).position.set(0,8.8,-5+n*3.5);var nl=new THREE.PointLight(nc,0.6,8);nl.position.set(0,8.4,-5+n*3.5);g.add(nl);officeObjects.neonStrips.push({mesh:L(g),color:nc,phase:n*0.8});}
+  for(var n=0;n<4;n++){var nc=neonColors[n%2];var nl=new THREE.PointLight(nc,0.6,8);nl.position.set(0,8.4,-5+n*3.5);g.add(nl);g.add(mkBox(16,0.12,0.2,nc,{emissive:nc,emissiveIntensity:1.0}));L(g).position.set(0,8.8,-5+n*3.5);officeObjects.neonStrips.push({mesh:L(g),color:nc,phase:n*0.8});}
   var arcadeG=new THREE.Group();
   arcadeG.add(mkBox(1.2,5,1.5,0x220033));L(arcadeG).position.y=2.5;
   arcadeG.add(mkBox(1.0,1.2,0.1,0x111111));L(arcadeG).position.set(0,3.2,0.76);
@@ -4670,7 +4670,7 @@ function createGamingLounge(){
   add(g,mkBox(0.5,8,16,0x3a3a50));L(g).position.set(10,4,0);
   add(g,mkBox(0.5,8,16,0x3a3a50));L(g).position.set(-10,4,0);
   var neonColors=[0xff00aa,0x00ffff];
-  for(var n=0;n<4;n++){var nc=neonColors[n%2];g.add(mkBox(16,0.12,0.2,nc,{emissive:nc,emissiveIntensity:1.0}));L(g).position.set(0,8.8,-5+n*3.5);var nl=new THREE.PointLight(nc,0.6,8);nl.position.set(0,8.4,-5+n*3.5);g.add(nl);officeObjects.neonStrips.push({mesh:L(g),color:nc,phase:n*0.8});}
+  for(var n=0;n<4;n++){var nc=neonColors[n%2];var nl=new THREE.PointLight(nc,0.6,8);nl.position.set(0,8.4,-5+n*3.5);g.add(nl);g.add(mkBox(16,0.12,0.2,nc,{emissive:nc,emissiveIntensity:1.0}));L(g).position.set(0,8.8,-5+n*3.5);officeObjects.neonStrips.push({mesh:L(g),color:nc,phase:n*0.8});}
   var arcadeG=new THREE.Group();
   arcadeG.add(mkBox(1.2,5,1.5,0x220033));L(arcadeG).position.y=2.5;
   arcadeG.add(mkBox(1.0,1.2,0.1,0x111111));L(arcadeG).position.set(0,3.2,0.76);
@@ -5396,7 +5396,7 @@ function createGamingLounge(){
   add(g,mkBox(0.5,8,16,0x3a3a50));L(g).position.set(10,4,0);
   add(g,mkBox(0.5,8,16,0x3a3a50));L(g).position.set(-10,4,0);
   var neonColors=[0xff00aa,0x00ffff];
-  for(var n=0;n<4;n++){var nc=neonColors[n%2];g.add(mkBox(16,0.12,0.2,nc,{emissive:nc,emissiveIntensity:1.0}));L(g).position.set(0,8.8,-5+n*3.5);var nl=new THREE.PointLight(nc,0.6,8);nl.position.set(0,8.4,-5+n*3.5);g.add(nl);officeObjects.neonStrips.push({mesh:L(g),color:nc,phase:n*0.8});}
+  for(var n=0;n<4;n++){var nc=neonColors[n%2];var nl=new THREE.PointLight(nc,0.6,8);nl.position.set(0,8.4,-5+n*3.5);g.add(nl);g.add(mkBox(16,0.12,0.2,nc,{emissive:nc,emissiveIntensity:1.0}));L(g).position.set(0,8.8,-5+n*3.5);officeObjects.neonStrips.push({mesh:L(g),color:nc,phase:n*0.8});}
   var arcadeG=new THREE.Group();
   arcadeG.add(mkBox(1.2,5,1.5,0x220033));L(arcadeG).position.y=2.5;
   arcadeG.add(mkBox(1.0,1.2,0.1,0x111111));L(arcadeG).position.set(0,3.2,0.76);
