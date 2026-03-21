@@ -152,10 +152,194 @@
       50% { opacity: 0.5; }
     }
     
+    /* ============================================================
+       DASHBOARD PANELS — Live Agent Overlays
+       ============================================================ */
+
+    /* Panel Base */
+    .office-panel {
+      position: fixed;
+      background: rgba(10, 10, 20, 0.92);
+      border: 1px solid rgba(100, 150, 255, 0.25);
+      border-radius: 10px;
+      color: #e0e0e0;
+      backdrop-filter: blur(12px);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+      z-index: 200;
+      overflow: hidden;
+    }
+    .panel-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 14px;
+      cursor: pointer;
+      user-select: none;
+      border-bottom: 1px solid rgba(100, 150, 255, 0.15);
+    }
+    .panel-header h3 { font-size: 13px; font-weight: 600; color: #fff; display: flex; align-items: center; gap: 6px; }
+    .panel-toggle {
+      background: none;
+      border: none;
+      color: #888;
+      font-size: 16px;
+      cursor: pointer;
+      padding: 2px 4px;
+      transition: transform 0.3s;
+    }
+    .office-panel.collapsed .panel-toggle { transform: rotate(-90deg); }
+    .panel-body {
+      padding: 12px;
+      max-height: 400px;
+      overflow-y: auto;
+      transition: max-height 0.3s ease, padding 0.3s ease;
+    }
+    .office-panel.collapsed .panel-body { max-height: 0; padding: 0 12px; overflow: hidden; }
+    .panel-body::-webkit-scrollbar { width: 4px; }
+    .panel-body::-webkit-scrollbar-track { background: transparent; }
+    .panel-body::-webkit-scrollbar-thumb { background: rgba(100,150,255,0.3); border-radius: 4px; }
+
+    /* 1. TOKEN PANEL — Top Left */
+    #token-panel { top: 20px; left: 20px; width: 280px; }
+    .token-summary { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px; }
+    .token-stat { background: rgba(255,255,255,0.05); border-radius: 6px; padding: 8px 10px; text-align: center; }
+    .token-stat .label { font-size: 10px; color: #888; text-transform: uppercase; }
+    .token-stat .value { font-size: 18px; font-weight: 700; }
+    .token-stat .value.input { color: #60a5fa; }
+    .token-stat .value.output { color: #34d399; }
+    .token-stat .value.total { color: #a78bfa; }
+    .token-stat .value.cost { color: #fbbf24; }
+    .token-bar-chart { margin-top: 10px; }
+    .token-bar-label { display: flex; justify-content: space-between; font-size: 11px; color: #888; margin-bottom: 4px; }
+    .token-bar-track { height: 8px; background: rgba(255,255,255,0.1); border-radius: 4px; overflow: hidden; display: flex; }
+    .token-bar-segment { height: 100%; transition: width 0.5s ease; }
+    .input-seg { background: linear-gradient(90deg, #3b82f6, #60a5fa); }
+    .output-seg { background: linear-gradient(90deg, #10b981, #34d399); }
+    .model-breakdown { margin-top: 10px; }
+    .model-row { display: flex; align-items: center; gap: 8px; padding: 5px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
+    .model-row:last-child { border-bottom: none; }
+    .model-name { font-size: 12px; color: #ccc; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .model-count { font-size: 11px; color: #888; }
+    .model-bar { height: 4px; width: 60px; background: rgba(255,255,255,0.1); border-radius: 2px; overflow: hidden; }
+    .model-bar-fill { height: 100%; background: #a78bfa; border-radius: 2px; transition: width 0.5s; }
+
+    /* 2. SESSION PANEL — Left of agent-panel */
+    #session-panel { top: 20px; right: 390px; width: 260px; max-height: calc(100vh - 160px); }
+    .session-item {
+      padding: 8px 10px;
+      border-radius: 6px;
+      margin-bottom: 6px;
+      background: rgba(255,255,255,0.04);
+      border-left: 3px solid transparent;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .session-item:hover { background: rgba(100,150,255,0.12); }
+    .session-item.active-session { border-left-color: #00ff88; }
+    .session-item.idle-session { border-left-color: #ffaa00; }
+    .session-item.error-session { border-left-color: #ff4444; }
+    .session-item.thinking-session { border-left-color: #4488ff; }
+    .session-header { display: flex; align-items: center; gap: 6px; margin-bottom: 3px; }
+    .session-emoji { font-size: 14px; }
+    .session-name { font-size: 13px; font-weight: 600; color: #fff; flex: 1; }
+    .status-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+    .status-dot.active { background: #00ff88; box-shadow: 0 0 6px #00ff88; }
+    .status-dot.idle { background: #ffaa00; }
+    .status-dot.error { background: #ff4444; }
+    .status-dot.thinking { background: #4488ff; animation: blink-dot 1s infinite; }
+    @keyframes blink-dot { 0%,100%{opacity:1} 50%{opacity:0.3} }
+    .session-meta { display: flex; justify-content: space-between; font-size: 11px; }
+    .session-model { font-size: 11px; color: #555; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 160px; }
+    .session-tokens { color: #a78bfa; }
+    .session-age { color: #888; }
+    .no-sessions { text-align: center; padding: 20px; color: #666; font-size: 12px; }
+
+    /* 3. EVENT FEED PANEL — Bottom Left */
+    #event-panel { bottom: 80px; left: 20px; width: 340px; max-height: 300px; }
+    .event-item {
+      display: flex;
+      gap: 8px;
+      padding: 6px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+      font-size: 12px;
+      animation: event-fadein 0.3s ease;
+    }
+    @keyframes event-fadein { from{opacity:0;transform:translateY(-4px)} to{opacity:1;transform:none} }
+    .event-item:last-child { border-bottom: none; }
+    .event-time { color: #555; font-size: 10px; flex-shrink: 0; min-width: 55px; }
+    .event-badge {
+      flex-shrink: 0;
+      width: 14px;
+      height: 14px;
+      border-radius: 3px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 9px;
+      margin-top: 1px;
+    }
+    .event-badge.started { background: rgba(0,255,136,0.2); color: #00ff88; }
+    .event-badge.finished { background: rgba(52,211,153,0.2); color: #34d399; }
+    .event-badge.tool-call { background: rgba(96,165,250,0.2); color: #60a5fa; }
+    .event-badge.error { background: rgba(239,68,68,0.2); color: #ef4444; }
+    .event-badge.thinking { background: rgba(68,136,255,0.2); color: #4488ff; }
+    .event-badge.message { background: rgba(251,191,36,0.2); color: #fbbf24; }
+    .event-body { flex: 1; }
+    .event-agent { color: #a78bfa; font-weight: 600; }
+    .event-text { color: #ccc; line-height: 1.4; }
+    .no-events { text-align: center; padding: 20px; color: #555; font-size: 12px; }
+
+    /* 4. HEALTH WIDGET — Bottom Right */
+    #health-widget { bottom: 20px; right: 20px; width: 210px; padding: 10px 14px; }
+    .health-row { display: flex; align-items: center; justify-content: space-between; padding: 3px 0; font-size: 12px; }
+    .health-label { color: #888; }
+    .health-value { color: #fff; font-weight: 600; display: flex; align-items: center; gap: 6px; }
+    .health-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+    .health-dot.healthy { background: #00ff88; box-shadow: 0 0 6px #00ff88; }
+    .health-dot.warn { background: #ffaa00; }
+    .health-dot.error { background: #ff4444; animation: blink-dot 1s infinite; }
+    .health-divider { height: 1px; background: rgba(255,255,255,0.1); margin: 5px 0; }
+    .health-time { font-size: 11px; color: #888; text-align: center; }
+    .health-uptime { font-size: 10px; color: #555; text-align: center; }
+
+    /* 5. MINI MAP — replaces legend */
+    #mini-map { bottom: 20px; left: 20px; width: 200px; padding: 10px 14px; }
+    .map-area {
+      position: relative;
+      width: 172px;
+      height: 90px;
+      margin: 8px auto 0;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(100,150,255,0.15);
+      border-radius: 6px;
+      overflow: hidden;
+    }
+    .map-wall { position: absolute; background: rgba(100,150,255,0.18); }
+    .map-wall.back { top: 5px; left: 8%; right: 8%; height: 2px; }
+    .map-wall.left { top: 0; bottom: 0; left: 8%; width: 2px; }
+    .map-wall.right { top: 0; bottom: 0; right: 8%; width: 2px; }
+    .map-desk { position: absolute; width: 16px; height: 9px; background: rgba(74,55,40,0.5); border: 1px solid rgba(100,150,255,0.2); border-radius: 2px; }
+    .map-agent-dot {
+      position: absolute;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      cursor: pointer;
+      transform: translate(-50%, -50%);
+      border: 2px solid rgba(255,255,255,0.4);
+      transition: transform 0.15s, box-shadow 0.15s;
+    }
+    .map-agent-dot:hover { transform: translate(-50%, -50%) scale(1.5); }
+    .map-agent-dot.active { background: #00ff88; box-shadow: 0 0 8px #00ff88; }
+    .map-agent-dot.idle { background: #ffaa00; }
+    .map-agent-dot.error { background: #ff4444; }
+    .map-agent-dot.thinking { background: #4488ff; animation: blink-dot 1s infinite; }
+    .map-label { position: absolute; font-size: 8px; color: rgba(255,255,255,0.3); pointer-events: none; text-transform: uppercase; letter-spacing: 0.5px; }
+
     /* Legend */
     #legend {
       position: fixed;
-      bottom: 80px;
+      bottom: 160px;
       left: 20px;
       background: rgba(10, 10, 20, 0.9);
       border: 1px solid rgba(100, 150, 255, 0.2);
@@ -165,22 +349,10 @@
       font-size: 12px;
       z-index: 100;
     }
-    #legend h4 {
-      margin-bottom: 8px;
-      font-size: 13px;
-    }
-    .legend-item {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      margin: 4px 0;
-    }
-    .legend-color {
-      width: 12px;
-      height: 12px;
-      border-radius: 50%;
-    }
-    
+    #legend h4 { margin-bottom: 8px; font-size: 13px; }
+    .legend-item { display: flex; align-items: center; gap: 8px; margin: 4px 0; }
+    .legend-color { width: 12px; height: 12px; border-radius: 50%; }
+
     /* Instructions */
     #instructions {
       position: fixed;
@@ -193,6 +365,41 @@
       font-size: 11px;
       z-index: 100;
     }
+
+    /* Speech bubbles */
+    .speech-bubble {
+      position: fixed;
+      background: rgba(15, 15, 30, 0.92);
+      border: 1px solid rgba(100, 150, 255, 0.4);
+      border-radius: 12px;
+      padding: 6px 10px;
+      color: #e8e8ff;
+      font-size: 12px;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      pointer-events: none;
+      transform: translateX(-50%);
+      z-index: 200;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+      backdrop-filter: blur(8px);
+      animation: bubble-pop 0.25s ease-out;
+      max-width: 200px;
+      white-space: normal;
+      text-align: center;
+    }
+    .speech-bubble::after {
+      content: '';
+      position: absolute;
+      bottom: -6px;
+      left: 50%;
+      transform: translateX(-50%);
+      border-left: 6px solid transparent;
+      border-right: 6px solid transparent;
+      border-top: 6px solid rgba(15, 15, 30, 0.92);
+    }
+    @keyframes bubble-pop {
+      from { opacity: 0; transform: translateX(-50%) scale(0.8) translateY(4px); }
+      to   { opacity: 1; transform: translateX(-50%) scale(1) translateY(0); }
+    }
   </style>
 </head>
 <body>
@@ -201,7 +408,7 @@
   <!-- Connection Status -->
   <div id="connection-status">
     <div class="dot"></div>
-    <span id="status-text">Connected to Gateway</span>
+    <span id="status-text">Demo Mode — Gateway Offline</span>
   </div>
   
   <!-- Time of Day Control -->
@@ -241,23 +448,148 @@
     <div id="ticker-content">🌐 OpenClaw Agent Office initialized • Waiting for agent activity...</div>
   </div>
   
-  <!-- Legend -->
+  <!-- ============================================================
+       DASHBOARD PANELS — Live Agent Overlays (HTML)
+       ============================================================ -->
+
+  <!-- 1. TOKEN / USAGE PANEL -->
+  <div id="token-panel" class="office-panel collapsed">
+    <div class="panel-header" onclick="togglePanel('token-panel')">
+      <h3>🪙 Token Usage</h3>
+      <button class="panel-toggle">&#9660;</button>
+    </div>
+    <div class="panel-body">
+      <div class="token-summary">
+        <div class="token-stat">
+          <div class="label">Input</div>
+          <div class="value input" id="tk-input">0</div>
+        </div>
+        <div class="token-stat">
+          <div class="label">Output</div>
+          <div class="value output" id="tk-output">0</div>
+        </div>
+        <div class="token-stat">
+          <div class="label">Total</div>
+          <div class="value total" id="tk-total">0</div>
+        </div>
+        <div class="token-stat">
+          <div class="label">Est. Cost</div>
+          <div class="value cost" id="tk-cost">$0.0000</div>
+        </div>
+      </div>
+      <!-- CSS bar chart -->
+      <div class="token-bar-chart">
+        <div class="token-bar-label">
+          <span>0</span><span>Token Distribution</span><span id="tk-quota">100K</span>
+        </div>
+        <div class="token-bar-track">
+          <div class="token-bar-segment input-seg" id="tk-input-bar" style="width:50%"></div>
+          <div class="token-bar-segment output-seg" id="tk-output-bar" style="width:50%"></div>
+        </div>
+      </div>
+      <!-- Model breakdown -->
+      <div class="model-breakdown" id="model-breakdown">
+        <div class="model-row">
+          <span class="model-name">Loading...</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. SESSION LIST PANEL -->
+  <div id="session-panel" class="office-panel collapsed">
+    <div class="panel-header" onclick="togglePanel('session-panel')">
+      <h3>💬 Sessions <span id="session-count" style="font-size:11px;color:#888;font-weight:400"> (0)</span></h3>
+      <button class="panel-toggle">&#9660;</button>
+    </div>
+    <div class="panel-body" id="session-list-body">
+      <div class="no-sessions">No active sessions</div>
+    </div>
+  </div>
+
+  <!-- 3. LIVE EVENT FEED -->
+  <div id="event-panel" class="office-panel">
+    <div class="panel-header" onclick="togglePanel('event-panel')">
+      <h3>⚡ Live Events <span id="event-count" style="font-size:11px;color:#888;font-weight:400">(0)</span></h3>
+      <button class="panel-toggle">&#9660;</button>
+    </div>
+    <div class="panel-body" id="event-list-body">
+      <div class="no-events">Waiting for events...</div>
+    </div>
+  </div>
+
+  <!-- 4. SYSTEM HEALTH WIDGET -->
+  <div id="health-widget" class="office-panel">
+    <div class="health-row">
+      <span class="health-label">Gateway</span>
+      <span class="health-value"><div class="health-dot warn" id="health-dot"></div><span id="health-latency">—</span></span>
+    </div>
+    <div class="health-row">
+      <span class="health-label">Sessions</span>
+      <span class="health-value" id="health-sessions">0</span>
+    </div>
+    <div class="health-row">
+      <span class="health-label">Agents Active</span>
+      <span class="health-value" id="health-agents">0 / 6</span>
+    </div>
+    <div class="health-divider"></div>
+    <div class="health-time" id="health-time">—</div>
+    <div class="health-uptime" id="health-uptime">Uptime: —</div>
+  </div>
+
+  <!-- 5. MINI AGENT MAP -->
+  <div id="mini-map" class="office-panel collapsed">
+    <div class="panel-header" onclick="togglePanel('mini-map')">
+      <h3>🗺️ Office Map</h3>
+      <button class="panel-toggle">&#9660;</button>
+    </div>
+    <div class="panel-body" style="padding:8px 12px;">
+      <div class="map-area" id="map-area">
+        <!-- CSS-drawn walls -->
+        <div class="map-wall back"></div>
+        <div class="map-wall left"></div>
+        <div class="map-wall right"></div>
+        <!-- CSS desk positions (6 desks in 2 rows) -->
+        <div class="map-desk" style="top:22px;left:20%"></div>
+        <div class="map-desk" style="top:22px;left:38%"></div>
+        <div class="map-desk" style="top:22px;left:56%"></div>
+        <div class="map-desk" style="top:52px;left:20%"></div>
+        <div class="map-desk" style="top:52px;left:38%"></div>
+        <div class="map-desk" style="top:52px;left:56%"></div>
+        <!-- Section labels -->
+        <div class="map-label" style="top:4px;left:8%;transform:translateX(-50%)">WORK</div>
+        <div class="map-label" style="top:4px;right:8%;transform:translateX(50%)">LOUNGE</div>
+        <div class="map-label" style="bottom:4px;left:50%;transform:translateX(-50%)">MEETING</div>
+        <!-- Agent dots (injected by JS) -->
+        <div id="map-dots"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- LEGEND -->
   <div id="legend">
     <h4>Agent Status</h4>
-    <div class="legend-item"><div class="legend-color" style="background:#00ff88"></div> Active</div>
+    <div class="legend-item"><div class="legend-color" style="background:#00ff88"></div> Working</div>
     <div class="legend-item"><div class="legend-color" style="background:#ffaa00"></div> Idle</div>
     <div class="legend-item"><div class="legend-color" style="background:#ff4444"></div> Error</div>
     <div class="legend-item"><div class="legend-color" style="background:#4488ff"></div> Thinking</div>
+    <div class="legend-item"><div class="legend-color" style="background:#8888ff"></div> Sleeping</div>
+    <div class="legend-item"><div class="legend-color" style="background:#44ffcc"></div> Particles</div>
+    <h4 style="margin-top:10px">Zones</h4>
+    <div class="legend-item"><div class="legend-color" style="background:#5d4037"></div> Library</div>
+    <div class="legend-item"><div class="legend-color" style="background:#455A64"></div> Server</div>
+    <div class="legend-item"><div class="legend-color" style="background:#6d4c41"></div> Break Room</div>
+    <div class="legend-item"><div class="legend-color" style="background:#4e342e"></div> Lounge</div>
   </div>
-  
+
   <!-- Instructions -->
   <div id="instructions">
-    🖱️ Drag to orbit • Scroll to zoom • Click agent to inspect
+    🖱️ Drag to orbit • Scroll to zoom • Click agent to inspect • Agents auto-cycle behaviors
   </div>
 
   <!-- Three.js -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.134.0/examples/js/controls/OrbitControls.js"></script>
   
   <script>
     // ============================================================
@@ -268,8 +600,8 @@
       dashboardApiUrl: 'http://localhost:3001/api/gateway',
       pollInterval: 3000,
       agentCount: 6,
-      officeWidth: 40,
-      officeDepth: 30,
+      officeWidth: 48,   // expanded for new zones (cols 0-23 map to -18..6)
+      officeDepth: 40,   // expanded for new zones (rows 0-19 map to -14..14)
       deskSpacing: 8,
     };
 
@@ -286,6 +618,51 @@
     let raycaster, mouse;
     let dustParticles;
 
+    // ── Behavior & Zones ──────────────────────────────────────────────────────
+    // Zone world-positions derived from layout.ts col→X, row→Z mapping
+    // X = col - 9, Z = 5 - row
+    const ZONE_CENTERS = {
+      desk_0:      { x: -5,  z:  2  },
+      desk_1:      { x: -5,  z:  -1 },
+      desk_2:      { x: -5,  z:  -4 },
+      desk_3:      { x: -1,  z:  2  },
+      desk_4:      { x: -1,  z:  -1 },
+      desk_5:      { x: -1,  z:  -4 },
+      boss_office: { x:  5,  z:  2  },
+      break_room:  { x: 11,  z:  2  },
+      meeting_room:{ x:  5,  z:  -2 },
+      whiteboard:  { x:  1,  z:  -7 },
+      library:     { x:  1,  z: -10 },
+      lounge:      { x: 11,  z:  -9 },
+      server_room: { x: 11,  z:  -4 },
+    };
+
+    // Agent behavior → destination zone + animation
+    const BEHAVIOR_MAP = {
+      working:      { zone: 'desk_0', anim: 'working',      bubble: '💻 Working...',  particle: 'code',    priority: 3 },
+      thinking:      { zone: 'desk_0', anim: 'thinking',      bubble: '🤔 Thinking...', particle: 'question', priority: 2 },
+      researching:   { zone: 'library', anim: 'researching',  bubble: '📚 Researching', particle: 'sparkle',  priority: 2 },
+      meeting:       { zone: 'meeting_room', anim: 'meeting', bubble: '🤝 In meeting', particle: null,      priority: 3 },
+      deploying:     { zone: 'server_room', anim: 'deploying', bubble: '🚀 Deploying!', particle: 'lightning', priority: 4 },
+      debugging:     { zone: 'desk_0', anim: 'debugging',    bubble: '🐛 Debugging...', particle: 'error',   priority: 3 },
+      receiving_task:{ zone: 'boss_office', anim: 'task',     bubble: '📋 New task!',  particle: 'sparkle',  priority: 4 },
+      reporting:     { zone: 'boss_office', anim: 'reporting', bubble: '✅ Done!',     particle: 'check',   priority: 3 },
+      idle:          { zone: 'lounge',  anim: 'idle',         bubble: '☕ Coffee time', particle: 'coffee_steam', priority: 0 },
+      coffee:        { zone: 'break_room', anim: 'coffee',    bubble: '☕ Brewing...',  particle: 'coffee_steam', priority: 1 },
+      snacking:      { zone: 'break_room', anim: 'snacking',  bubble: '🍪 Snack break', particle: null,     priority: 1 },
+      sleeping:      { zone: 'lounge',  anim: 'sleeping',     bubble: '😴',             particle: 'zzz',    priority: 0 },
+      napping:       { zone: 'desk_0', anim: 'sleeping',       bubble: '😴',             particle: 'zzz',    priority: 0 },
+      panicking:     { zone: 'desk_0', anim: 'panicking',     bubble: '😱 Error!',     particle: 'error',   priority: 5 },
+      dead:          { zone: 'desk_0', anim: 'dead',          bubble: '💀 Crashed',    particle: 'smoke',   priority: 0 },
+      overloaded:    { zone: 'desk_0', anim: 'overloaded',     bubble: '🔥 Overloaded!', particle: 'smoke',   priority: 4 },
+      reviving:       { zone: 'desk_0', anim: 'reviving',      bubble: '🔄 Restarting...', particle: 'lightning', priority: 3 },
+    };
+
+    // Per-agent behavior runtime state
+    const agentBehaviors = [];   // { behavior, zone, walkStart, walkTarget, walkProgress, screenPos }
+    let agentBubbles    = [];   // DOM elements for speech bubbles
+    let agentParticles  = [];   // Three.js particle meshes
+
     // Agent status colors
     const STATUS_COLORS = {
       active: 0x00ff88,
@@ -300,11 +677,11 @@
     function init() {
       // Scene
       scene = new THREE.Scene();
-      scene.background = new THREE.Color(0x1a1a2a);
+      scene.background = new THREE.Color(0x1e2433);
 
       // Camera (isometric perspective)
       const aspect = window.innerWidth / window.innerHeight;
-      const frustumSize = 30;
+      const frustumSize = 50;
       camera = new THREE.OrthographicCamera(
         frustumSize * aspect / -2,
         frustumSize * aspect / 2,
@@ -346,6 +723,11 @@
       createLights();
       createDustParticles();
       createAgents();
+      initAgentBehaviors();
+
+      // Start demo behavior cycling (every 5-8 seconds)
+      setTimeout(() => demoBehaviorCycle(), 2000);
+      setInterval(() => demoBehaviorCycle(), 5000 + Math.random() * 3000);
 
       // Event listeners
       window.addEventListener('resize', onWindowResize);
@@ -367,7 +749,7 @@
       // Floor
       const floorGeom = new THREE.BoxGeometry(CONFIG.officeWidth, 0.5, CONFIG.officeDepth);
       const floorMat = new THREE.MeshStandardMaterial({ 
-        color: 0x3a3a4a,
+        color: 0x4a5a6a,
         roughness: 0.8,
         metalness: 0.1
       });
@@ -402,14 +784,18 @@
       // Boss desk area
       createBossDesk(12, -5);
 
-      // Meeting table
-      createMeetingTable(12, 5);
+      // Meeting table (round table in meeting room zone)
+      createMeetingTable(5, -2);
 
-      // Lounge area
-      createLounge(12, 12);
+      // Lounge area (back-right)
+      createLounge(11, -9);
 
       // Server rack
-      createServerRack(-10, 12);
+      createServerRack(11, -4);
+
+      // New zones
+      createLibrary(1, -10);       // bookshelves + reading chair
+      createBreakRoom(11, 2);       // counter + coffee machine + water cooler
     }
 
     function createFloorTiles() {
@@ -440,7 +826,7 @@
     function createWalls() {
       const wallHeight = 8;
       const wallMat = new THREE.MeshStandardMaterial({ 
-        color: 0x252530,
+        color: 0x3a4555,
         roughness: 0.9,
       });
 
@@ -902,11 +1288,551 @@
     }
 
     // ============================================================
+    // LIBRARY ZONE
+    // ============================================================
+    function createLibrary(x, z) {
+      const group = new THREE.Group();
+      group.position.set(x, 0, z);
+
+      // Two bookshelves
+      const shelfMat = new THREE.MeshStandardMaterial({ color: 0x5d4037 });
+      const bookColors = [0xe53935, 0x1e88e5, 0x43a047, 0xfb8c00, 0x8e24aa, 0x00acc1, 0xffb300, 0x6d4c41];
+      for (let shelf = 0; shelf < 2; shelf++) {
+        const sx = shelf === 0 ? -1 : 1;
+        // Shelf frame
+        const frame = new THREE.Mesh(
+          new THREE.BoxGeometry(2.5, 4, 0.4),
+          shelfMat
+        );
+        frame.position.set(sx, 2, 0);
+        frame.castShadow = true;
+        group.add(frame);
+        // Books on 4 rows
+        for (let row = 0; row < 4; row++) {
+          for (let col = 0; col < 6; col++) {
+            const bw = 0.18 + Math.random() * 0.1;
+            const bh = 0.55 + Math.random() * 0.25;
+            const book = new THREE.Mesh(
+              new THREE.BoxGeometry(bw, bh, 0.28),
+              new THREE.MeshStandardMaterial({ color: bookColors[(row * 6 + col) % bookColors.length] })
+            );
+            book.position.set(
+              sx + (-1.1 + col * 0.38),
+              0.6 + row * 0.9,
+              0
+            );
+            group.add(book);
+          }
+        }
+      }
+
+      // Reading armchair
+      const chairGroup = new THREE.Group();
+      const chairMat = new THREE.MeshStandardMaterial({ color: 0x6d4c41 });
+      // Seat
+      const seat = new THREE.Mesh(new THREE.BoxGeometry(1.4, 0.2, 1.4), chairMat);
+      seat.position.y = 0.9;
+      chairGroup.add(seat);
+      // Backrest
+      const back = new THREE.Mesh(new THREE.BoxGeometry(1.4, 1.2, 0.2), chairMat);
+      back.position.set(0, 1.5, -0.6);
+      chairGroup.add(back);
+      // Armrests
+      const arm = new THREE.Mesh(new THREE.BoxGeometry(0.15, 0.5, 1.4), chairMat);
+      arm.position.set(-0.65, 1.15, 0);
+      chairGroup.add(arm);
+      const arm2 = arm.clone();
+      arm2.position.x = 0.65;
+      chairGroup.add(arm2);
+      // Cushion
+      const cushion = new THREE.Mesh(
+        new THREE.BoxGeometry(1.2, 0.2, 1.2),
+        new THREE.MeshStandardMaterial({ color: 0x795548 })
+      );
+      cushion.position.y = 1.05;
+      chairGroup.add(cushion);
+      chairGroup.position.set(0, 0, 1.2);
+      group.add(chairGroup);
+
+      // Floor lamp
+      const lampBase = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.2, 0.25, 0.1, 16),
+        new THREE.MeshStandardMaterial({ color: 0x888888 })
+      );
+      lampBase.position.set(-1.5, 0.05, 1.5);
+      group.add(lampBase);
+      const lampPole = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.04, 0.04, 1.2, 8),
+        new THREE.MeshStandardMaterial({ color: 0x999999 })
+      );
+      lampPole.position.set(-1.5, 0.7, 1.5);
+      group.add(lampPole);
+      const lampShade = new THREE.Mesh(
+        new THREE.ConeGeometry(0.3, 0.35, 16),
+        new THREE.MeshStandardMaterial({
+          color: 0xddddcc,
+          emissive: 0xffeeaa,
+          emissiveIntensity: 0.4,
+          side: THREE.DoubleSide,
+        })
+      );
+      lampShade.position.set(-1.5, 1.45, 1.5);
+      group.add(lampShade);
+
+      // Small side table
+      const tableMat = new THREE.MeshStandardMaterial({ color: 0x4e342e });
+      const sideTable = new THREE.Mesh(new THREE.BoxGeometry(0.8, 0.08, 0.8), tableMat);
+      sideTable.position.set(1.8, 0.7, 1.2);
+      group.add(sideTable);
+      const tableLeg = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.7, 0.1), tableMat);
+      tableLeg.position.set(1.8, 0.35, 1.2);
+      group.add(tableLeg);
+
+      scene.add(group);
+    }
+
+    // ============================================================
+    // BREAK ROOM / KITCHEN ZONE
+    // ============================================================
+    function createBreakRoom(x, z) {
+      const group = new THREE.Group();
+      group.position.set(x, 0, z);
+
+      const counterMat = new THREE.MeshStandardMaterial({ color: 0x78909c });
+      const woodMat = new THREE.MeshStandardMaterial({ color: 0x6d4c41 });
+      const metalMat = new THREE.MeshStandardMaterial({ color: 0xb0bec5, metalness: 0.6, roughness: 0.3 });
+
+      // Counter along top wall
+      const counter = new THREE.Mesh(new THREE.BoxGeometry(5, 1.5, 1), counterMat);
+      counter.position.set(0, 0.75, -2.2);
+      counter.castShadow = true;
+      group.add(counter);
+      // Counter top
+      const counterTop = new THREE.Mesh(
+        new THREE.BoxGeometry(5.1, 0.1, 1.1),
+        new THREE.MeshStandardMaterial({ color: 0xECEFF1 })
+      );
+      counterTop.position.set(0, 1.55, -2.2);
+      group.add(counterTop);
+
+      // Coffee machine
+      const machineBody = new THREE.Mesh(new THREE.BoxGeometry(0.7, 1.2, 0.6), metalMat);
+      machineBody.position.set(-1.5, 1.6, -2.2);
+      group.add(machineBody);
+      // Dispenser nozzle
+      const nozzle = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.3, 0.1), metalMat);
+      nozzle.position.set(-1.5, 1.1, -1.88);
+      group.add(nozzle);
+      // Drip tray
+      const tray = new THREE.Mesh(
+        new THREE.BoxGeometry(0.5, 0.05, 0.4),
+        new THREE.MeshStandardMaterial({ color: 0x37474f })
+      );
+      tray.position.set(-1.5, 0.95, -1.9);
+      group.add(tray);
+      // Small display on machine
+      const display = new THREE.Mesh(
+        new THREE.BoxGeometry(0.3, 0.15, 0.05),
+        new THREE.MeshStandardMaterial({ color: 0x00bfa5, emissive: 0x00bfa5, emissiveIntensity: 0.8 })
+      );
+      display.position.set(-1.5, 2.0, -1.88);
+      group.add(display);
+
+      // Snack shelf
+      const shelfUnit = new THREE.Mesh(new THREE.BoxGeometry(1.2, 1.5, 0.6), woodMat);
+      shelfUnit.position.set(1.8, 0.75, -2.2);
+      group.add(shelfUnit);
+      // Snack boxes on shelf
+      const snackColors = [0xff7043, 0xffca28, 0x66bb6a, 0xab47bc];
+      for (let i = 0; i < 4; i++) {
+        const snack = new THREE.Mesh(
+          new THREE.BoxGeometry(0.2, 0.3, 0.1),
+          new THREE.MeshStandardMaterial({ color: snackColors[i] })
+        );
+        snack.position.set(1.5 + i * 0.28, 1.55, -1.88);
+        group.add(snack);
+      }
+
+      // Water cooler
+      const coolerBody = new THREE.Mesh(new THREE.BoxGeometry(0.5, 1.0, 0.5), metalMat);
+      coolerBody.position.set(0.3, 0.5, -2.2);
+      group.add(coolerBody);
+      // Water jug
+      const jug = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.2, 0.2, 0.6, 16),
+        new THREE.MeshStandardMaterial({ color: 0x1565c0, transparent: true, opacity: 0.7 })
+      );
+      jug.position.set(0.3, 1.3, -2.2);
+      group.add(jug);
+
+      // Round table
+      const rtTop = new THREE.Mesh(
+        new THREE.CylinderGeometry(1.0, 1.0, 0.12, 24),
+        new THREE.MeshStandardMaterial({ color: 0x4e342e })
+      );
+      rtTop.position.set(0, 1.2, 0);
+      group.add(rtTop);
+      const rtLeg = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.08, 0.15, 1.2, 8),
+        new THREE.MeshStandardMaterial({ color: 0x555555 })
+      );
+      rtLeg.position.set(0, 0.6, 0);
+      group.add(rtLeg);
+
+      // Chairs around round table
+      for (let i = 0; i < 4; i++) {
+        const angle = (i / 4) * Math.PI * 2;
+        const cx = Math.sin(angle) * 1.6;
+        const cz = Math.cos(angle) * 1.6;
+        const chair = new THREE.Mesh(
+          new THREE.BoxGeometry(0.7, 0.12, 0.7),
+          new THREE.MeshStandardMaterial({ color: 0xefebe9 })
+        );
+        chair.position.set(cx, 0.76, cz);
+        group.add(chair);
+        const chairBack = new THREE.Mesh(
+          new THREE.BoxGeometry(0.7, 0.6, 0.1),
+          new THREE.MeshStandardMaterial({ color: 0xefebe9 })
+        );
+        chairBack.position.set(cx, 1.1, cz - Math.cos(angle) * 0.35);
+        group.add(chairBack);
+      }
+
+      // Small plant
+      const plant = createPlant();
+      plant.scale.set(1.2, 1.2, 1.2);
+      plant.position.set(-2.3, 1.6, -1.8);
+      group.add(plant);
+      officeObjects.plants.push(plant);
+
+      scene.add(group);
+    }
+
+    // ============================================================
+    // AGENT BEHAVIOR SYSTEM
+    // ============================================================
+    function initAgentBehaviors() {
+      for (let i = 0; i < CONFIG.agentCount; i++) {
+        const deskKey = `desk_${i}`;
+        const zone = ZONE_CENTERS[deskKey] || ZONE_CENTERS.desk_0;
+        agentBehaviors[i] = {
+          behavior: 'idle',
+          zone: deskKey,
+          walkStart: { x: 0, z: 0 },
+          walkTarget: { x: zone.x, z: zone.z },
+          walkProgress: 1,
+          walkDuration: 0,
+          currentAnim: 'idle',
+        };
+        // Create DOM bubble element (hidden)
+        const bubble = document.createElement('div');
+        bubble.className = 'speech-bubble';
+        bubble.style.display = 'none';
+        document.body.appendChild(bubble);
+        agentBubbles[i] = bubble;
+      }
+    }
+
+    // Convert zone + desk offset to world position
+    function getDeskWorldPos(agentIndex) {
+      const deskPositions = [
+        { x: -5, z:  2 },
+        { x: -5, z: -1 },
+        { x: -5, z: -4 },
+        { x: -1, z:  2 },
+        { x: -1, z: -1 },
+        { x: -1, z: -4 },
+      ];
+      return deskPositions[agentIndex] || deskPositions[0];
+    }
+
+    function setAgentBehavior(agentIndex, behavior) {
+      const mapping = BEHAVIOR_MAP[behavior];
+      if (!mapping) return;
+
+      const ab = agentBehaviors[agentIndex];
+      const prevBehavior = ab.behavior;
+      ab.behavior = behavior;
+
+      // Resolve zone: desk_N uses own desk, others use the mapped zone
+      let targetZoneKey;
+      if (mapping.zone.startsWith('desk_')) {
+        targetZoneKey = `desk_${agentIndex}`;
+      } else {
+        targetZoneKey = mapping.zone;
+      }
+
+      const targetZone = ZONE_CENTERS[targetZoneKey] || getDeskWorldPos(agentIndex);
+
+      // If same position, just update animation
+      const dx = targetZone.x - ab.walkTarget.x;
+      const dz = targetZone.z - ab.walkTarget.z;
+      if (Math.abs(dx) < 0.1 && Math.abs(dz) < 0.1) {
+        ab.walkProgress = 1;
+        ab.walkTarget = { x: targetZone.x, z: targetZone.z };
+        ab.currentAnim = mapping.anim;
+      } else {
+        // Start walking to new zone
+        ab.walkStart = { x: agents[agentIndex].position.x, z: agents[agentIndex].position.z };
+        ab.walkTarget = { x: targetZone.x, z: targetZone.z };
+        ab.walkProgress = 0;
+        ab.walkDuration = 1500; // ms
+        ab.currentAnim = 'walking';
+      }
+
+      // Update speech bubble
+      updateBubble(agentIndex, mapping.bubble || null);
+
+      // Spawn particles if behavior has a particle type
+      if (mapping.particle) {
+        spawnParticle(agentIndex, mapping.particle);
+      }
+
+      // Update agent appearance (status ring color)
+      const statusColors = {
+        working: 0x00ff88,
+        thinking: 0x4488ff,
+        researching: 0x88aaff,
+        meeting: 0xffcc44,
+        deploying: 0xff8844,
+        debugging: 0xff4444,
+        receiving_task: 0x44ffaa,
+        reporting: 0x44ffaa,
+        idle: 0xffaa00,
+        coffee: 0xffaa00,
+        snacking: 0xffaa00,
+        sleeping: 0x8888ff,
+        napping: 0x8888ff,
+        panicking: 0xff2222,
+        dead: 0x444444,
+        overloaded: 0xff6600,
+        reviving: 0x44aaff,
+      };
+      const color = statusColors[behavior] || 0xffffff;
+      if (agents[agentIndex] && agents[agentIndex].userData.statusRing) {
+        agents[agentIndex].userData.statusRing.material.color.setHex(color);
+        agents[agentIndex].userData.statusRing.material.emissive.setHex(color);
+      }
+    }
+
+    function updateAgentWalking(deltaMs) {
+      agentBehaviors.forEach((ab, i) => {
+        if (!agents[i]) return;
+
+        if (ab.walkProgress < 1) {
+          // Lerp position with slight bob
+          ab.walkProgress = Math.min(1, ab.walkProgress + deltaMs / ab.walkDuration);
+          const t = easeInOutQuad(ab.walkProgress);
+          agents[i].position.x = lerp(ab.walkStart.x, ab.walkTarget.x, t);
+          agents[i].position.z = lerp(ab.walkStart.z, ab.walkTarget.z, t);
+          // Bob animation while walking
+          const bob = Math.sin(ab.walkProgress * Math.PI * 6) * 0.15;
+          agents[i].position.y = bob;
+        } else {
+          agents[i].position.x = ab.walkTarget.x;
+          agents[i].position.z = ab.walkTarget.z;
+          agents[i].position.y = 0;
+        }
+
+        // Update bubble screen position
+        updateBubblePosition(i);
+      });
+    }
+
+    function easeInOutQuad(t) {
+      return t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
+    }
+    function lerp(a, b, t) { return a + (b - a) * t; }
+
+    // ── Speech Bubbles ──────────────────────────────────────────────────────
+    function updateBubble(agentIndex, text) {
+      const bubble = agentBubbles[agentIndex];
+      if (!bubble) return;
+      if (!text) {
+        bubble.style.display = 'none';
+        return;
+      }
+      bubble.textContent = text;
+      bubble.style.display = 'block';
+      // Re-trigger animation
+      bubble.style.animation = 'none';
+      bubble.offsetHeight; // reflow
+      bubble.style.animation = 'bubble-pop 0.25s ease-out';
+    }
+
+    function updateBubblePosition(agentIndex) {
+      const bubble = agentBubbles[agentIndex];
+      if (!bubble || bubble.style.display === 'none') return;
+      const agent = agents[agentIndex];
+      if (!agent) return;
+
+      const worldPos = new THREE.Vector3(
+        agent.position.x,
+        agent.position.y + 2.5, // above agent head
+        agent.position.z
+      );
+      worldPos.project(camera);
+
+      const x = (worldPos.x * 0.5 + 0.5) * window.innerWidth;
+      const y = (-worldPos.y * 0.5 + 0.5) * window.innerHeight;
+
+      // Hide if behind camera or off screen
+      if (worldPos.z > 1 || x < -50 || x > window.innerWidth + 50 || y < -50 || y > window.innerHeight + 50) {
+        bubble.style.display = 'none';
+        return;
+      }
+
+      bubble.style.left = x + 'px';
+      bubble.style.top = (y - 10) + 'px';
+    }
+
+    function hideAllBubbles() {
+      agentBubbles.forEach(b => { if (b) b.style.display = 'none'; });
+    }
+
+    // ── Particle Effects ───────────────────────────────────────────────────
+    const PARTICLE_CHARS = {
+      code:        ['{}', '</>', '=>', '()', '[]', '&&', '||', '::'],
+      question:    ['?', '??', '¿'],
+      sparkle:     ['✨', '★', '✦', '⬥'],
+      error:       ['!', '✖', '⚠'],
+      check:       ['✓', '✔', '✅'],
+      coffee_steam:['~', '°'],
+      lightning:   ['⚡'],
+      zzz:         ['Z', 'z'],
+      smoke:       ['·', '•'],
+    };
+
+    // Build a shared canvas texture cache keyed by (char, colorHex)
+    const spriteTextureCache = {};
+    function makeCharTexture(char, colorHex) {
+      const key = char + '_' + colorHex;
+      if (spriteTextureCache[key]) return spriteTextureCache[key];
+
+      const canvas = document.createElement('canvas');
+      canvas.width = 64;
+      canvas.height = 64;
+      const ctx = canvas.getContext('2d');
+      ctx.clearRect(0, 0, 64, 64);
+      ctx.font = 'bold 36px monospace';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillStyle = '#' + colorHex.toString(16).padStart(6, '0');
+      ctx.shadowColor = '#' + colorHex.toString(16).padStart(6, '0');
+      ctx.shadowBlur = 8;
+      ctx.fillText(char, 32, 32);
+
+      const tex = new THREE.CanvasTexture(canvas);
+      spriteTextureCache[key] = tex;
+      return tex;
+    }
+
+    function spawnParticle(agentIndex, type) {
+      const agent = agents[agentIndex];
+      if (!agent) return;
+
+      const chars = PARTICLE_CHARS[type] || ['·'];
+      const char = chars[Math.floor(Math.random() * chars.length)];
+      const colorHex = getParticleColorHex(type);
+      const tex = makeCharTexture(char, colorHex);
+
+      const mat = new THREE.SpriteMaterial({
+        map: tex,
+        transparent: true,
+        opacity: 1,
+        depthWrite: false,
+      });
+      const sprite = new THREE.Sprite(mat);
+      sprite.scale.set(0.6, 0.6, 0.6);
+
+      const deskPos = getDeskWorldPos(agentIndex);
+      sprite.position.set(
+        deskPos.x + (Math.random() - 0.5) * 2,
+        2.0,
+        deskPos.z + (Math.random() - 0.5) * 2
+      );
+
+      sprite.userData = {
+        type,
+        char,
+        agentIndex,
+        age: 0,
+        maxAge: 1800 + Math.random() * 1200,
+        velocity: {
+          x: (Math.random() - 0.5) * 0.6,
+          y: 0.4 + Math.random() * 0.7,
+          z: (Math.random() - 0.5) * 0.6,
+        },
+      };
+
+      scene.add(sprite);
+      agentParticles.push(sprite);
+    }
+
+    function getParticleColorHex(type) {
+      const c = {
+        code:        [0x44ffcc, 0x66ffaa, 0x88ffdd],
+        question:     [0x88aaff, 0xaaaaff],
+        sparkle:     [0xffdd44, 0xffcc00],
+        error:       [0xff4444, 0xff2222],
+        check:       [0x44ff88, 0x88ffbb],
+        coffee_steam:[0xccaa88, 0xddbb99],
+        lightning:   [0xffee44, 0xffcc00],
+        zzz:         [0x8888ff, 0xaaaaff],
+        smoke:       [0x888888, 0xaaaaaa],
+      };
+      const arr = c[type] || [0xffffff];
+      return arr[Math.floor(Math.random() * arr.length)];
+    }
+
+    function updateParticles(deltaMs) {
+      const toRemove = [];
+      agentParticles.forEach((p, idx) => {
+        p.userData.age += deltaMs;
+        const progress = p.userData.age / p.userData.maxAge;
+
+        // Float upward with drift
+        p.position.x += p.userData.velocity.x * deltaMs * 0.001;
+        p.position.y += p.userData.velocity.y * deltaMs * 0.001;
+        p.position.z += p.userData.velocity.z * deltaMs * 0.001;
+        // Damping
+        p.userData.velocity.x *= 0.99;
+        p.userData.velocity.z *= 0.99;
+        // Oscillate slightly
+        p.position.x += Math.sin(p.userData.age * 0.005) * 0.003;
+
+        // Fade out
+        p.material.opacity = Math.max(0, 1 - progress);
+
+        // Scale down as it dies
+        const scale = 0.6 * (1 - progress * 0.4);
+        p.scale.set(scale, scale, scale);
+
+        if (progress >= 1) {
+          scene.remove(p);
+          toRemove.push(idx);
+        }
+      });
+      for (let i = toRemove.length - 1; i >= 0; i--) {
+        agentParticles.splice(toRemove[i], 1);
+      }
+    }
+
+    // Demo: cycle agent behaviors periodically
+    function demoBehaviorCycle() {
+      const behaviors = Object.keys(BEHAVIOR_MAP);
+      agents.forEach((agent, i) => {
+        const behavior = behaviors[Math.floor(Math.random() * behaviors.length)];
+        setAgentBehavior(i, behavior);
+      });
+    }
+
+    // ============================================================
     // LIGHTING
     // ============================================================
     function createLights() {
       // Ambient light
-      const ambient = new THREE.AmbientLight(0x606080, 0.8);
+      const ambient = new THREE.AmbientLight(0x8899bb, 1.2);
       scene.add(ambient);
 
       // Main directional light (sun)
@@ -917,10 +1843,10 @@
       ambientLights.main.shadow.mapSize.height = 2048;
       ambientLights.main.shadow.camera.near = 0.5;
       ambientLights.main.shadow.camera.far = 100;
-      ambientLights.main.shadow.camera.left = -30;
-      ambientLights.main.shadow.camera.right = 30;
-      ambientLights.main.shadow.camera.top = 30;
-      ambientLights.main.shadow.camera.bottom = -30;
+      ambientLights.main.shadow.camera.left = -25;
+      ambientLights.main.shadow.camera.right = 25;
+      ambientLights.main.shadow.camera.top = 25;
+      ambientLights.main.shadow.camera.bottom = -25;
       scene.add(ambientLights.main);
 
       // Fill light
@@ -958,9 +1884,9 @@
       if (timeOfDay >= 6 && timeOfDay <= 18) {
         // Daytime
         const dayProgress = (timeOfDay - 6) / 12;
-        mainIntensity = 0.4 + Math.sin(dayProgress * Math.PI) * 0.6;
+        mainIntensity = 0.8 + Math.sin(dayProgress * Math.PI) * 0.7;
         fillIntensity = 0.2 + Math.sin(dayProgress * Math.PI) * 0.2;
-        ambientIntensity = 0.3 + Math.sin(dayProgress * Math.PI) * 0.3;
+        ambientIntensity = 0.7 + Math.sin(dayProgress * Math.PI) * 0.3;
         
         // Warm morning/evening, cool midday
         if (timeOfDay < 9 || timeOfDay > 15) {
@@ -971,12 +1897,12 @@
           fillColor = new THREE.Color(0x8888ff);
         }
       } else {
-        // Nighttime
-        mainIntensity = 0.1;
-        fillIntensity = 0.15;
-        ambientIntensity = 0.15;
-        mainColor = new THREE.Color(0x334466);
-        fillColor = new THREE.Color(0x222244);
+        // Nighttime — keep enough light to see the office
+        mainIntensity = 0.5;
+        fillIntensity = 0.4;
+        ambientIntensity = 0.6;
+        mainColor = new THREE.Color(0x334488);
+        fillColor = new THREE.Color(0x223355);
       }
 
       ambientLights.main.intensity = mainIntensity;
@@ -987,11 +1913,12 @@
       ambientLights.fill.intensity = fillIntensity;
       ambientLights.fill.color = fillColor;
 
-      // Update scene background
+      // Update scene background (day = light blue-gray office, night = deep indigo)
+      const dayIntensity = Math.max(0, Math.sin(((timeOfDay - 6) / 12) * Math.PI));
       const bgColor = new THREE.Color().lerpColors(
-        new THREE.Color(0x050510),
-        new THREE.Color(0x0a0a1a),
-        Math.max(0, Math.sin(((timeOfDay - 6) / 12) * Math.PI))
+        new THREE.Color(0x0d1020),   // night: deep indigo
+        new THREE.Color(0x6a7a8a),   // day: light office blue-gray
+        dayIntensity
       );
       scene.background = bgColor;
 
@@ -1086,13 +2013,21 @@
       const agentGroup = new THREE.Group();
       agentGroup.userData.agentIndex = index;
 
-      // Body (capsule-like)
-      const bodyGeom = new THREE.CapsuleGeometry(0.3, 0.6, 8, 16);
+      // Body (capsule = cylinder + two hemisphere caps, compatible with all Three.js versions)
       const bodyMat = new THREE.MeshStandardMaterial({ color: 0x4a4a6a });
-      const body = new THREE.Mesh(bodyGeom, bodyMat);
-      body.position.y = 0.9;
-      body.castShadow = true;
-      agentGroup.add(body);
+      const bodyCyl = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.3, 0.6, 12), bodyMat);
+      bodyCyl.position.y = 0.9;
+      bodyCyl.castShadow = true;
+      agentGroup.add(bodyCyl);
+      const capGeo = new THREE.SphereGeometry(0.3, 12, 8);
+      const topCap = new THREE.Mesh(capGeo, bodyMat);
+      topCap.position.y = 1.2;
+      topCap.castShadow = true;
+      agentGroup.add(topCap);
+      const botCap = new THREE.Mesh(capGeo, bodyMat);
+      botCap.position.y = 0.6;
+      botCap.castShadow = true;
+      agentGroup.add(botCap);
 
       // Head
       const headGeom = new THREE.SphereGeometry(0.25, 16, 16);
@@ -1124,11 +2059,23 @@
     function updateAgentStatus(agent, status, data = null) {
       const ring = agent.userData.statusRing;
       const color = STATUS_COLORS[status] || STATUS_COLORS.idle;
-      
+
       ring.material.color.setHex(color);
       ring.material.emissive.setHex(color);
       agent.userData.status = status;
       agent.userData.agentData = data;
+
+      // Also update behavior if we have a mapping from status
+      const behaviorMap = {
+        active: 'working',
+        idle: 'idle',
+        thinking: 'thinking',
+        error: 'panicking',
+      };
+      const idx = agent.userData.agentIndex;
+      if (idx !== undefined && behaviorMap[status]) {
+        setAgentBehavior(idx, behaviorMap[status]);
+      }
     }
 
     // ============================================================
@@ -1167,13 +2114,43 @@
         }
       });
 
-      // Agent status ring animation
+      // Agent status ring + behavior-based body animations
       agents.forEach((agent, i) => {
         const ring = agent.userData.statusRing;
-        if (ring) {
-          ring.rotation.z = time * 0.5 + i;
-          const pulse = 0.6 + Math.sin(time * 2 + i) * 0.4;
-          ring.material.emissiveIntensity = pulse;
+        const ab = agentBehaviors[i];
+        if (!ring) return;
+
+        ring.rotation.z = time * 0.5 + i;
+        const pulse = 0.6 + Math.sin(time * 2 + i) * 0.4;
+        ring.material.emissiveIntensity = pulse;
+
+        // Behavior-specific animations on the agent group
+        if (ab) {
+          const behavior = ab.behavior;
+
+          if (behavior === 'thinking' || behavior === 'researching') {
+            // Head tilt (rotate body slightly)
+            agent.rotation.z = Math.sin(time * 1.5 + i) * 0.08;
+          } else if (behavior === 'panicking' || behavior === 'overloaded') {
+            // Shake animation
+            agent.position.x += (Math.random() - 0.5) * 0.04;
+            agent.rotation.z = Math.sin(time * 8 + i) * 0.15;
+          } else if (behavior === 'dead') {
+            // Slump
+            agent.rotation.x = 0.3;
+            agent.position.y = -0.3;
+          } else if (behavior === 'sleeping' || behavior === 'napping') {
+            // Gentle breathing
+            const breathe = Math.sin(time * 1.2 + i) * 0.03;
+            if (agent.children[0]) agent.children[0].scale.y = 1 + breathe;
+          } else if (ab.walkProgress < 1) {
+            // Walking bob (already handled in updateAgentWalking, but add arm swing)
+            agent.rotation.x = Math.sin(time * 10) * 0.1;
+          } else {
+            // Reset to normal
+            agent.rotation.z *= 0.9;
+            agent.rotation.x *= 0.9;
+          }
         }
       });
 
@@ -1182,20 +2159,316 @@
     }
 
     // ============================================================
+    // ============================================================
+    // DASHBOARD PANELS — Live UI Updates
+    // ============================================================
+
+    // Panel toggle
+    function togglePanel(id) {
+      const el = document.getElementById(id);
+      if (el) el.classList.toggle('collapsed');
+    }
+
+    // --- 1. TOKEN PANEL ---
+    function updateTokenPanel(sessions) {
+      let totalInput = 0, totalOutput = 0, totalTokens = 0;
+      const modelCounts = {};
+
+      sessions.forEach(s => {
+        totalInput += s.inputTokens || 0;
+        totalOutput += s.outputTokens || 0;
+        totalTokens += s.totalTokens || 0;
+        const model = s.model || 'unknown';
+        modelCounts[model] = (modelCounts[model] || 0) + (s.totalTokens || 0);
+      });
+
+      // Estimated cost (average $0.004/1K tokens)
+      const cost = (totalTokens / 1000) * 0.004;
+
+      document.getElementById('tk-input').textContent = formatNum(totalInput);
+      document.getElementById('tk-output').textContent = formatNum(totalOutput);
+      document.getElementById('tk-total').textContent = formatNum(totalTokens);
+      document.getElementById('tk-cost').textContent = '$' + cost.toFixed(4);
+
+      // CSS bar chart (input vs output of total quota = 100K)
+      const quota = 100000;
+      const inputPct = Math.min((totalInput / quota) * 100, 100);
+      const outputPct = Math.min((totalOutput / quota) * 100, 100);
+      document.getElementById('tk-input-bar').style.width = inputPct + '%';
+      document.getElementById('tk-output-bar').style.width = outputPct + '%';
+
+      // Model breakdown
+      const breakdown = document.getElementById('model-breakdown');
+      const sorted = Object.entries(modelCounts).sort((a, b) => b[1] - a[1]);
+      const maxTokens = sorted.length > 0 ? sorted[0][1] : 1;
+      breakdown.innerHTML = sorted.slice(0, 5).map(([model, tokens]) => {
+        const pct = Math.round((tokens / maxTokens) * 100);
+        const short = model.length > 22 ? model.slice(0, 20) + '…' : model;
+        return `<div class="model-row">
+          <span class="model-name" title="${model}">${short}</span>
+          <span class="model-count">${formatNum(tokens)}</span>
+          <div class="model-bar"><div class="model-bar-fill" style="width:${pct}%"></div></div>
+        </div>`;
+      }).join('');
+    }
+
+    // --- 2. SESSION PANEL ---
+    function updateSessionPanel(sessions) {
+      const body = document.getElementById('session-list-body');
+      document.getElementById('session-count').textContent = ` (${sessions.length})`;
+
+      if (!sessions.length) {
+        body.innerHTML = '<div class="no-sessions">No active sessions</div>';
+        return;
+      }
+
+      body.innerHTML = sessions.slice(0, 10).map(s => {
+        const status = s.isActive ? 'active' : (s.aborted ? 'error' : s.behavior === 'thinking' ? 'thinking' : 'idle');
+        const age = formatAge(s.lastActivity || s.updatedAt);
+        const emoji = s.emoji || '🤖';
+        const name = escapeHtml(s.name || 'Agent');
+        const model = s.model || '';
+        const shortModel = model.length > 24 ? model.slice(0, 22) + '…' : model;
+        return `<div class="session-item ${status}-session" onclick="flyToAgent('${escapeHtml(s.key || s.id)}')" title="Click to fly to agent">
+          <div class="session-header">
+            <span class="session-emoji">${emoji}</span>
+            <span class="session-name">${name}</span>
+            <div class="status-dot ${status}"></div>
+          </div>
+          <div class="session-model">${shortModel}</div>
+          <div class="session-meta">
+            <span class="session-tokens">${formatNum(s.totalTokens || 0)} tok</span>
+            <span class="session-age">${age}</span>
+          </div>
+        </div>`;
+      }).join('');
+    }
+
+    // Fly camera to agent desk
+    function flyToAgent(sessionKey) {
+      // Find matching agent by session key or index
+      const idx = agents.findIndex(a => {
+        const d = a.userData.agentData;
+        return d && (d.key === sessionKey || d.id === sessionKey || d.name === sessionKey);
+      });
+      const target = idx >= 0 ? agents[idx] : agents[0];
+      if (!target) return;
+
+      // Desk positions (same as createAgents)
+      const deskMap = [
+        {x:-12,z:-8},{x:-12,z:0},{x:-12,z:8},
+        {x:0,z:-8},{x:0,z:0},{x:0,z:8},
+      ];
+      const di = target.userData.agentIndex || 0;
+      const pos = deskMap[di] || {x:0,z:0};
+
+      // Animate camera to desk
+      const startPos = camera.position.clone();
+      const startTarget = controls.target.clone();
+      const endPos = new THREE.Vector3(pos.x + 5, 12, pos.z + 10);
+      const endTarget = new THREE.Vector3(pos.x, 0, pos.z);
+      const duration = 1200;
+      const start = performance.now();
+
+      function flyAnim(now) {
+        const t = Math.min((now - start) / duration, 1);
+        const ease = 1 - Math.pow(1 - t, 3);
+        camera.position.lerpVectors(startPos, endPos, ease);
+        controls.target.lerpVectors(startTarget, endTarget, ease);
+        camera.updateProjectionMatrix();
+        if (t < 1) requestAnimationFrame(flyAnim);
+      }
+      requestAnimationFrame(flyAnim);
+
+      // Show agent panel
+      showAgentPanel(target);
+    }
+
+    // --- 3. LIVE EVENT FEED ---
+    const eventFeed = [];
+    const MAX_EVENTS = 50;
+
+    function pushEvent(type, agent, text) {
+      const now = new Date();
+      const time = now.toLocaleTimeString('en-US', {hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false});
+      eventFeed.unshift({type, agent, text, time});
+      if (eventFeed.length > MAX_EVENTS) eventFeed.pop();
+      renderEventFeed();
+    }
+
+    function renderEventFeed() {
+      const body = document.getElementById('event-list-body');
+      document.getElementById('event-count').textContent = `(${eventFeed.length})`;
+      if (!eventFeed.length) {
+        body.innerHTML = '<div class="no-events">Waiting for events...</div>';
+        return;
+      }
+      const icons = {started:'▶',finished:'✓',tool:'⚙',error:'✗',thinking:'💭',message:'💬'};
+      body.innerHTML = eventFeed.slice(0, 30).map(e => `
+        <div class="event-item">
+          <span class="event-time">${e.time}</span>
+          <div class="event-badge ${e.type}">${icons[e.type] || '•'}</div>
+          <div class="event-body">
+            <span class="event-agent">${escapeHtml(e.agent)}</span>
+            <span class="event-text">${escapeHtml(e.text)}</span>
+          </div>
+        </div>`).join('');
+    }
+
+    // Infer event type from behavior/status
+    function inferEventType(session) {
+      if (session.aborted) return 'error';
+      const b = session.behavior;
+      if (b === 'thinking' || b === 'reasoning') return 'thinking';
+      if (b === 'tool_use' || session.currentToolName) return 'tool';
+      if (session.chatStatus === 'replying') return 'message';
+      return 'started';
+    }
+
+    // --- 4. HEALTH WIDGET ---
+    const startTime = Date.now();
+    let lastPing = Date.now();
+    let pingMs = -1;
+
+    function updateHealthWidget(sessions, connected) {
+      const activeCount = sessions.filter(s => s.isActive).length;
+      document.getElementById('health-sessions').textContent = sessions.length;
+      document.getElementById('health-agents').textContent = `${activeCount} / 6`;
+
+      // Ping display
+      if (connected && pingMs >= 0) {
+        document.getElementById('health-latency').textContent = pingMs + 'ms';
+        const dot = document.getElementById('health-dot');
+        dot.className = 'health-dot ' + (pingMs < 200 ? 'healthy' : pingMs < 1000 ? 'warn' : 'error');
+      } else {
+        document.getElementById('health-latency').textContent = '—';
+        document.getElementById('health-dot').className = 'health-dot warn';
+      }
+
+      // Clock
+      const now = new Date();
+      document.getElementById('health-time').textContent = now.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:true});
+
+      // Uptime
+      const upSec = Math.floor((Date.now() - startTime) / 1000);
+      const upStr = upSec < 3600 ? `${Math.floor(upSec/60)}m` : `${Math.floor(upSec/3600)}h ${Math.floor((upSec%3600)/60)}m`;
+      document.getElementById('health-uptime').textContent = `Uptime: ${upStr}`;
+    }
+
+    // --- 5. MINI MAP ---
+    // Map dot positions (% of map area, matching desk positions)
+    const MAP_POSITIONS = [
+      {x:24, y:27}, {x:42, y:27}, {x:60, y:27},
+      {x:24, y:60}, {x:42, y:60}, {x:60, y:60},
+    ];
+
+    function updateMiniMap(sessions) {
+      const dotsEl = document.getElementById('map-dots');
+      dotsEl.innerHTML = agents.map((agent, i) => {
+        const data = agent.userData.agentData || {};
+        const status = agent.userData.status || 'idle';
+        const pos = MAP_POSITIONS[i] || {x:50, y:50};
+        const name = escapeHtml(data.name || `Agent ${i+1}`);
+        return `<div class="map-agent-dot ${status}" style="left:${pos.x}%;top:${pos.y}%" onclick="flyToMapAgent(${i})" title="${name}"></div>`;
+      }).join('');
+    }
+
+    function flyToMapAgent(agentIndex) {
+      const target = agents[agentIndex];
+      if (target) {
+        const idx = target.userData.agentIndex || agentIndex;
+        const deskMap = [
+          {x:-12,z:-8},{x:-12,z:0},{x:-12,z:8},
+          {x:0,z:-8},{x:0,z:0},{x:0,z:8},
+        ];
+        const pos = deskMap[idx] || {x:0,z:0};
+        const startPos = camera.position.clone();
+        const startTarget = controls.target.clone();
+        const endPos = new THREE.Vector3(pos.x + 5, 12, pos.z + 10);
+        const endTarget = new THREE.Vector3(pos.x, 0, pos.z);
+        const duration = 1000;
+        const t0 = performance.now();
+        function anim(now) {
+          const t = Math.min((now-t0)/duration, 1);
+          const e = 1-Math.pow(1-t,3);
+          camera.position.lerpVectors(startPos, endPos, e);
+          controls.target.lerpVectors(startTarget, endTarget, e);
+          if (t < 1) requestAnimationFrame(anim);
+        }
+        requestAnimationFrame(anim);
+        showAgentPanel(target);
+      }
+    }
+
+    // Utility: format large numbers
+    function formatNum(n) {
+      if (n >= 1000000) return (n/1000000).toFixed(1)+'M';
+      if (n >= 1000) return (n/1000).toFixed(1)+'K';
+      return String(n);
+    }
+
+    // Utility: relative time
+    function formatAge(ts) {
+      if (!ts) return '—';
+      const diff = Date.now() - new Date(ts).getTime();
+      if (diff < 60000) return Math.floor(diff/1000)+'s ago';
+      if (diff < 3600000) return Math.floor(diff/60000)+'m ago';
+      return Math.floor(diff/3600000)+'h ago';
+    }
+
+    // Utility: escape HTML
+    function escapeHtml(s) {
+      if (!s) return '';
+      return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+
+    // Ping gateway for latency
+    async function pingGateway() {
+      const t0 = Date.now();
+      try {
+        const r = await fetch(CONFIG.gatewayUrl + '/api/sessions', {signal: AbortSignal.timeout(2000)});
+        if (r.ok) pingMs = Date.now() - t0;
+      } catch(_) { pingMs = -1; }
+    }
+    setInterval(pingGateway, 10000);
+    pingGateway();
+
+    // Update health widget every second
+    setInterval(() => {
+      const sessions = agents.map(a => ({
+        isActive: a.userData.status === 'active',
+        totalTokens: a.userData.agentData?.totalTokens || 0,
+        lastActivity: a.userData.agentData?.lastActivity,
+      }));
+      updateHealthWidget(sessions, !document.getElementById('connection-status').classList.contains('disconnected'));
+    }, 1000);
+
+
     // GATEWAY INTEGRATION
     // ============================================================
     async function pollGateway() {
-      try {
-        const response = await fetch(CONFIG.dashboardApiUrl);
-        if (!response.ok) throw new Error('Gateway not responding');
-        
-        const data = await response.json();
-        updateFromGateway(data);
-        updateConnectionStatus(true);
-      } catch (error) {
-        console.log('Gateway connection error:', error);
+      // Try OpenClaw gateway first, fall back to demo agents
+      const urls = [
+        CONFIG.gatewayUrl + '/api/sessions',
+        CONFIG.dashboardApiUrl,
+      ];
+      let ok = false;
+      for (const url of urls) {
+        try {
+          const response = await fetch(url, { signal: AbortSignal.timeout(3000) });
+          if (response.ok) {
+            const data = await response.json();
+            updateFromGateway(data);
+            ok = true;
+            break;
+          }
+        } catch (_) {
+          // Try next URL
+        }
+      }
+      if (!ok) {
+        // Silent fallback — demo agents already showing, just update status dot
         updateConnectionStatus(false);
-        // Use demo data
         updateDemoAgents();
       }
     }
@@ -1203,6 +2476,7 @@
     function updateFromGateway(data) {
       const sessions = data.sessions || [];
       const activityEvents = [];
+      const seenAgents = new Set();
 
       // Update each agent based on session data
       agents.forEach((agent, i) => {
@@ -1219,6 +2493,12 @@
 
           // Add to activity feed
           if (session.statusSummary) {
+            const eventType = inferEventType(session);
+            const agentKey = session.key || `agent-${i}`;
+            if (!seenAgents.has(agentKey)) {
+              seenAgents.add(agentKey);
+              pushEvent(eventType, session.name || `Agent ${i+1}`, session.statusSummary);
+            }
             activityEvents.push({
               agent: session.name || `Agent ${i + 1}`,
               action: session.statusSummary,
@@ -1227,6 +2507,12 @@
           }
         }
       });
+
+      // Update all dashboard panels
+      updateTokenPanel(sessions);
+      updateSessionPanel(sessions);
+      updateMiniMap(sessions);
+      updateHealthWidget(sessions, true);
 
       // Update activity ticker
       if (activityEvents.length > 0) {
@@ -1237,6 +2523,7 @@
     function updateDemoAgents() {
       const statuses = ['active', 'idle', 'thinking', 'active', 'idle', 'active'];
       const names = ['DuckBot', 'ResearchBot', 'CodeBot', 'TaskBot', 'MonitorBot', 'HelperBot'];
+      const models = ['bailian/qwen3.5-plus','bailian/glm-5','bailian/kimi-k2.5','bailian/MiniMax-M2.5','bailian/qwen3.5','bailian/glm-4.7'];
       const tasks = [
         'Processing incoming messages',
         'Waiting for tasks',
@@ -1246,16 +2533,42 @@
         'Assisting with queries'
       ];
 
+      const demoSessions = [];
       agents.forEach((agent, i) => {
-        updateAgentStatus(agent, statuses[i], {
+        const tokens = Math.floor(Math.random() * 80000 + 5000);
+        const sessionData = {
+          id: `demo-${i}`,
+          key: `demo:${i}`,
           name: names[i],
-          model: 'bailian/qwen3.5-plus',
-          tokens: Math.floor(Math.random() * 50000),
-          task: tasks[i],
-        });
+          emoji: ['🦆','🔬','💻','📋','📊','🆘'][i],
+          model: models[i],
+          inputTokens: Math.floor(tokens * 0.4),
+          outputTokens: Math.floor(tokens * 0.6),
+          totalTokens: tokens,
+          isActive: statuses[i] === 'active',
+          behavior: statuses[i] === 'thinking' ? 'thinking' : statuses[i] === 'active' ? 'tool_use' : 'idle',
+          aborted: false,
+          statusSummary: tasks[i],
+          lastActivity: Date.now() - Math.random() * 300000,
+        };
+        demoSessions.push(sessionData);
+        updateAgentStatus(agent, statuses[i], sessionData);
       });
 
-      // Demo activity
+      // Push a demo event occasionally
+      if (Math.random() > 0.7) {
+        const ai = Math.floor(Math.random() * names.length);
+        const types = ['started','finished','tool','thinking','message'];
+        pushEvent(types[Math.floor(Math.random()*types.length)], names[ai], tasks[ai]);
+      }
+
+      // Update all dashboard panels with demo data
+      updateTokenPanel(demoSessions);
+      updateSessionPanel(demoSessions);
+      updateMiniMap(demoSessions);
+      updateHealthWidget(demoSessions, false);
+
+      // Demo activity ticker
       if (Math.random() > 0.7) {
         const events = [{
           agent: names[Math.floor(Math.random() * names.length)],
@@ -1272,7 +2585,7 @@
       
       if (connected) {
         statusEl.classList.remove('disconnected');
-        textEl.textContent = 'Connected to Gateway';
+        textEl.textContent = 'Live — Gateway Connected';
       } else {
         statusEl.classList.add('disconnected');
         textEl.textContent = 'Demo Mode (Gateway Offline)';
@@ -1343,7 +2656,7 @@
     // ============================================================
     function onWindowResize() {
       const aspect = window.innerWidth / window.innerHeight;
-      const frustumSize = 30;
+      const frustumSize = 50;
       
       camera.left = frustumSize * aspect / -2;
       camera.right = frustumSize * aspect / 2;
@@ -1362,22 +2675,37 @@
     // ============================================================
     // ANIMATION LOOP
     // ============================================================
+    let lastFrameTime = performance.now();
+
     function animate() {
       requestAnimationFrame(animate);
-      
-      const time = performance.now() * 0.001;
-      
+
+      const now = performance.now();
+      const deltaMs = Math.min(now - lastFrameTime, 100); // cap at 100ms to avoid jumps
+      lastFrameTime = now;
+
+      const time = now * 0.001;
+
       controls.update();
       updateAnimations(time);
       updateLighting();
-      
+      updateAgentWalking(deltaMs);
+      updateParticles(deltaMs);
+
       renderer.render(scene, camera);
     }
 
     // ============================================================
     // START
     // ============================================================
-    init();
+    console.log("OFFICE: Starting init...");
+    try {
+      init();
+      console.log("OFFICE: init() completed successfully");
+    } catch(e) {
+      console.error("OFFICE: init() failed:", e);
+      document.body.insertAdjacentHTML("beforeend", `<div style="position:fixed;top:0;left:0;background:#300;color:#fff;padding:20px;font-family:monospace;z-index:9999">ERROR: ${e.message}<pre>${e.stack}</pre></div>`);
+    }
   </script>
 </body>
 </html>
