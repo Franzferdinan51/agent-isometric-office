@@ -101,7 +101,9 @@ function init(){
   controls=new THREE.OrbitControls(camera,renderer.domElement);controls.enableDamping=true;controls.dampingFactor=0.05;
   controls.minZoom=0.25;controls.maxZoom=3;controls.maxPolarAngle=Math.PI/2.5;controls.minPolarAngle=Math.PI/6;controls.target.set(0,0,0);
   raycaster=new THREE.Raycaster();mouse=new THREE.Vector2();
-  createMainOffice();createHallway();createServerRoom();createGamingLounge();createKitchen();createRooftop();createExecutiveOffice();createSupplyCloset();createLoungeArea();createMeetingRoom();
+  createMainOffice();
+  // createHallway(); // disabled - irrelevant corridor
+  createServerRoom();createGamingLounge();createKitchen();createRooftop();createExecutiveOffice();createSupplyCloset();createLoungeArea();createMeetingRoom();
   createLights();createDustParticles();createAgents();updateLighting();
   window.addEventListener('resize',onWindowResize);renderer.domElement.addEventListener('click',onMouseClick);
   document.getElementById('time-slider').addEventListener('input',onTimeChange);
