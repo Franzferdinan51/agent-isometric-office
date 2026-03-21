@@ -671,11 +671,11 @@ function updateAgentStatus(agent,status,data){
   ring.material.color.setHex(color);ring.material.emissive.setHex(color);agent.userData.status=status;agent.userData.agentData=data;
 }
 function updateAnimations(time){
-  officeObjects.monitors.forEach(function(mon,i){if(mon.userData.isMonitor&&mon.children[1]){var flicker=0.8+Math.sin(time*2+i)*0.1+Math.random()*0.1;mon.children[1].material.emissiveIntensity=flicker;}});
+  officeObjects.monitors.forEach(function(mon,i){if(mon.userData.isMonitor && mon.children[1] && mon.children[1].material){var flicker=0.8+Math.sin(time*2+i)*0.1+Math.random()*0.1;mon.children[1].material.emissiveIntensity=flicker;}});
   officeObjects.plants.forEach(function(plant,i){if(plant.userData.isPlant){plant.rotation.z=Math.sin(time+i)*0.02;plant.rotation.x=Math.cos(time*0.8+i)*0.015;}});
-  officeObjects.lamps.forEach(function(lamp,i){if(lamp.userData.isLamp&&lamp.children[2]){var pulse=0.2+Math.sin(time*0.5+i)*0.1;lamp.children[2].material.emissiveIntensity=pulse;}});
-  officeObjects.blinkLights.forEach(function(light){if(light.userData.blinkLight){var speed=light.userData.blinkSpeed||2;var blink=Math.sin(time*speed+light.userData.blinkOffset)>0;light.material.emissiveIntensity=blink?1:0.2;}});
-  agents.forEach(function(agent,i){var ring=agent.userData.statusRing;if(ring){ring.rotation.z=time*0.5+i;var pulse=0.6+Math.sin(time*2+i)*0.4;ring.material.emissiveIntensity=pulse;}});
+  officeObjects.lamps.forEach(function(lamp,i){if(lamp.userData.isLamp && lamp.children[2] && lamp.children[2].material){var pulse=0.2+Math.sin(time*0.5+i)*0.1;lamp.children[2].material.emissiveIntensity=pulse;}});
+  officeObjects.blinkLights.forEach(function(light){if(light.userData.blinkLight && light.material){var speed=light.userData.blinkSpeed||2;var blink=Math.sin(time*speed+light.userData.blinkOffset)>0;light.material.emissiveIntensity=blink?1:0.2;}});
+  agents.forEach(function(agent,i){var ring=agent.userData.statusRing;if(ring && ring.material){ring.rotation.z=time*0.5+i;var pulse=0.6+Math.sin(time*2+i)*0.4;ring.material.emissiveIntensity=pulse;}});
   updateDustParticles();
   officeObjects.waterParticles.forEach(function(wp){if(!wp||!wp.userData||!wp.userData.velocities)return;var pos=wp.geometry.attributes.position.array;var vel=wp.userData.velocities;var oy=wp.userData.originY||1.8;for(var i=0;i<vel.length;i++){pos[i*3]+=vel[i].vx;pos[i*3+1]+=vel[i].vy;pos[i*3+2]+=vel[i].vz;if(pos[i*3+1]>oy+1.5)pos[i*3+1]=oy;}wp.geometry.attributes.position.needsUpdate=true;});
   officeObjects.steamParticles.forEach(function(sp){if(!sp||!sp.userData||!sp.userData.velocities)return;var pos=sp.geometry.attributes.position.array;var vel=sp.userData.velocities;var oy=sp.userData.originY||1.8;for(var i=0;i<vel.length;i++){pos[i*3]+=vel[i].vx;pos[i*3+1]+=vel[i].vy;pos[i*3+2]+=vel[i].vz;if(pos[i*3+1]>oy+2){pos[i*3+1]=oy;pos[i*3]=(Math.random()-0.5)*0.3;pos[i*3+2]=(Math.random()-0.5)*0.2;}sp.geometry.attributes.position.needsUpdate=true;}});
