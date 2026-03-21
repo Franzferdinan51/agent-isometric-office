@@ -693,65 +693,6 @@ function createMeetingRoom() {
 // ================================================================
 // MEETING ROOM
 // ================================================================
-function createMeetingRoom() {
-  const g = new THREE.Group();
-  g.position.set(-30, 0, 12);
-
-  // Floor
-  const floor = mkBox(18, 0.2, 14, 0x1e2e3a);
-  floor.position.y = -0.1;
-  g.add(floor);
-
-  // Walls
-  const wMat = mkMat(0x2a3a4a);
-  const backW = mkBox(18, 8, 0.5, 0x2a3a4a);
-  backW.position.set(0, 4, -7);
-  g.add(backW);
-  const leftW = mkBox(0.5, 8, 14, 0x2a3a4a);
-  leftW.position.set(-9, 4, 0);
-  g.add(leftW);
-  const rightW = mkBox(0.5, 8, 14, 0x2a3a4a);
-  rightW.position.set(9, 4, 0);
-  g.add(rightW);
-
-  // Oval table
-  const tableG = new THREE.Group();
-  tableG.add(mkBox(8, 0.15, 4, 0x2244aa, { roughness: 0.3, metalness: 0.5 }));
-  L(tableG).position.y = 1.8;
-  [[-3, -1.5], [3, -1.5], [-3, 1.5], [3, 1.5]].forEach(p => {
-    const leg = mkCyl(0.08, 0.08, 1.8, 8, 0x333333);
-    leg.position.set(p[0], 0.9, p[1]);
-    tableG.add(leg);
-  });
-  g.add(tableG);
-
-  // 6 chairs around table
-  const chairPositions = [
-    { x: -3, z: -4, ry: 0 }, { x: 0, z: -4, ry: 0 }, { x: 3, z: -4, ry: 0 },
-    { x: -3, z: 4, ry: Math.PI }, { x: 0, z: 4, ry: Math.PI }, { x: 3, z: 4, ry: Math.PI }
-  ];
-  chairPositions.forEach(cp => {
-    const chair = createChair();
-    chair.position.set(cp.x, 0, cp.z);
-    chair.rotation.y = cp.ry;
-    g.add(chair);
-    officeObjects.chairs.push(chair);
-  });
-
-  // Whiteboard
-  const wbG = new THREE.Group();
-  wbG.add(mkBox(6, 4, 0.1, 0xffffff, { roughness: 0.9 }));
-  L(wbG).position.y = 5;
-  wbG.add(mkBox(6.2, 0.1, 0.2, 0x888888));
-  L(wbG).position.y = 7.05;
-  wbG.position.set(0, 0, -6.8);
-  g.add(wbG);
-
-  scene.add(g);
-}
-
-// ================================================================
-// ROOFTOP
 // ================================================================
 function createRooftop() {
   const g = new THREE.Group();
