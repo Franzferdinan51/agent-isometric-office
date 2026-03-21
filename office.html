@@ -694,7 +694,7 @@ function closeAgentPanel(){document.getElementById('agent-panel').classList.remo
 function onWindowResize(){var aspect=window.innerWidth/window.innerHeight;camera.left=CONFIG.frustumSize*aspect/-2;camera.right=CONFIG.frustumSize*aspect/2;camera.top=CONFIG.frustumSize/2;camera.bottom=CONFIG.frustumSize/-2;camera.updateProjectionMatrix();renderer.setSize(window.innerWidth,window.innerHeight);}
 function onTimeChange(event){timeOfDay=parseFloat(event.target.value);updateLighting();}
 function animate(){requestAnimationFrame(animate);var time=performance.now()*0.001;controls.update();updateAnimations(time);updateLighting();renderer.render(scene,camera);}
-try{init();console.log('OFFICE: init complete');}catch(e){document.body.insertAdjacentHTML('beforeend','<div style="position:fixed;top:0;left:0;background:#300;color:#fff;padding:20px;font-family:monospace;z-index:9999">ERROR: '+e.message+'<pre>'+e.stack+'</pre></div>');}
+try{init();console.log('OFFICE: init complete');}catch(e){var err='<div style="position:fixed;top:0;left:0;background:#300;color:#fff;padding:20px;font-family:monospace;z-index:9999">ERROR: '+e.message+'<\/div>';document.body.insertAdjacentHTML('beforeend',err);}
 <\/script>
 </body>
 </html>
