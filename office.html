@@ -78,7 +78,7 @@ canvas{display:block}
 <script>
 
 
-const CONFIG={gatewayUrl:'http://localhost:18790',dashboardApiUrl:'http://localhost:18790',pollInterval:3000,agentCount:6,officeWidth:90,officeDepth:90,frustumSize:80};
+const CONFIG={gatewayUrl:'http://localhost:18790',dashboardApiUrl:'http://localhost:3001/api/gateway',pollInterval:3000,agentCount:6,officeWidth:90,officeDepth:90,frustumSize:80};
 let scene,camera,renderer,controls,agents=[],clock;
 let officeObjects={monitors:[],plants:[],mugs:[],lamps:[],blinkLights:[],steamParticles:[],neonStrips:[],waterParticles:[],chairs:[],desks:[],hockeyBall:null};
 let ambientLights={main:null,fill:null};
@@ -211,7 +211,7 @@ function createMainOffice(){
     add(dg,mkBox(0.2,0.1,0.3,0x2a2a2a));L(dg).position.set(1,1.65,0.5);
     var mug=createCoffeeMug();mug.position.set(1.5,1.75,-0.8);dg.add(mug);officeObjects.mugs.push(mug);
     var lamp=createDeskLamp();lamp.position.set(-1.5,1.6,-0.5);dg.add(lamp);officeObjects.lamps.push(lamp);
-    if(i%2===0){var plant=createPlant();plant.position.set(-1.5,1.6,0.8);dg.add(plant);officeObjects.plants.push(plant);}
+    if(i%2===0){var plant=createPlant();plant.position.set(-1.5, 1.5, 0.8);dg.add(plant);officeObjects.plants.push(plant);}
     g.add(dg);officeObjects.desks.push(dg);
     var chair=createChair();chair.position.set(dp.x,0,dp.z+2);g.add(chair);officeObjects.chairs.push(chair);
   });
@@ -683,7 +683,7 @@ function updateAnimations(time){
   if(officeObjects.hockeyBall){var hb=officeObjects.hockeyBall;hb.userData.ballPhase=(hb.userData.ballPhase||0)+0.02;hb.position.x=Math.sin(hb.userData.ballPhase)*2;hb.position.z=Math.cos(hb.userData.ballPhase)*0.8;}
 }
 async function pollGateway(){
-  var urls=[CONFIG.gatewayUrl+'/api/sessions',CONFIG.dashboardApiUrl];var ok=false;
+  var urls=[CONFIG.gatewayUrl+'/sessions',CONFIG.dashboardApiUrl];var ok=false;
   for(var ui=0;ui<urls.length;ui++){try{var response=await fetch(urls[ui],{signal:AbortSignal.timeout(3000)});if(response.ok){var data=await response.json();updateFromGateway(data);ok=true;break;}}catch(e){}}
   if(!ok){updateConnectionStatus(false);updateDemoAgents();}
 }
