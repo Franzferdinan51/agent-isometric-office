@@ -446,12 +446,12 @@ function createRooftop(){
   var plantData=[{x:-10,z:-6,type:'tree'},{x:9,z:-6,type:'tree'},{x:-10,z:5,type:'plant'},{x:9,z:5,type:'plant'},{x:-4,z:7,type:'plant'},{x:4,z:7,type:'plant'}];
   plantData.forEach(function(pd){
     var plantG=new THREE.Group();
-    plantG.add(mkCyl(0.5,0.4,0.6,12,0x8B4513));L(plantG).position.y=0.3;
+    plantG.add(mkCyl(0.5,0.4,0.85,12,0x8B4513));L(plantG).position.y=0.425;
     if(pd.type==='tree'){
-      plantG.add(mkCyl(0.15,0.2,2,8,0x6B4226));L(plantG).position.y=1.3;
-      plantG.add(mkSphere(1.0,10,0x228B22));L(plantG).position.y=2.8;
-      plantG.add(mkSphere(0.7,10,0x2B8B2B));L(plantG).position.set(0.5,3.2,0.3);
-      plantG.add(mkSphere(0.6,10,0x1B6B1B));L(plantG).position.set(-0.4,3.0,-0.3);
+      plantG.add(mkCyl(0.15,0.2,2.5,8,0x6B4226));L(plantG).position.y=1.15;
+      plantG.add(mkSphere(1.0,10,0x228B22));L(plantG).position.y=2.5;
+      plantG.add(mkSphere(0.7,10,0x2B8B2B));L(plantG).position.set(0.5, 2.9, 0.3);
+      plantG.add(mkSphere(0.6,10,0x1B6B1B));L(plantG).position.set(-0.4, 2.7, -0.3);
     }else{
       for(var lf=0;lf<5;lf++){var leaf=mkSphere(0.25,8,0x228B22);leaf.position.set(Math.cos(lf/5*Math.PI*2)*0.3,0.7+Math.random()*0.3,Math.sin(lf/5*Math.PI*2)*0.3);leaf.scale.y=1.4;plantG.add(leaf);}
       plantG.add(mkSphere(0.1,8,0xff4444));L(plantG).position.set(0.2,1.0,0);
