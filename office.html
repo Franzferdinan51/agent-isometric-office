@@ -626,7 +626,25 @@ function createKitchen() {
   g.add(coolerG);
 
   scene.add(g);
+}
 
+// ================================================================
+// MEETING ROOM
+// ================================================================
+function createMeetingRoom() {
+  const g = new THREE.Group();
+  g.position.set(-30, 0, 12);
+
+  // Floor
+  const floor = mkBox(18, 0.2, 14, 0x1e2e3a);
+  floor.position.y = -0.1;
+  g.add(floor);
+
+  // Walls
+  const wMat = mkMat(0x2a3a4a);
+  const backW = mkBox(18, 8, 0.5, 0x2a3a4a);
+  backW.position.set(0, 4, -7);
+  g.add(backW);
   const leftW = mkBox(0.5, 8, 14, 0x2a3a4a);
   leftW.position.set(-9, 4, 0);
   g.add(leftW);
