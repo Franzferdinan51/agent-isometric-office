@@ -31,8 +31,8 @@ canvas{display:block;position:fixed;top:0;left:0}
 <div id="panels">
 <div class="panel"><div class="panel-title">&#9670; Agents Online</div><div id="agent-list"><span style="color:#777">Loading...</span></div></div>
 </div>
-<script src="js/three.min.js"></script>
-<script src="js/OrbitControls.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
 <script>
 var C={u:"http://localhost:18790",p:3000,n:6};
 var O={m:[],P:[],L:[],b:[],a:[]};
@@ -113,7 +113,7 @@ function wxinit(){var city=localStorage.getItem("duck_city")||"Huber Heights,OH"
 function fetchWx(city){fetch("https://wttr.in/"+encodeURIComponent(city)+"?format=j1",{signal:AbortSignal.timeout(5000)}).then(function(r){if(!r.ok)throw"bad";return r.json();}).then(function(j){var c=j.current_condition[0];var tf=c.temp_F!==undefined?c.temp_F:Math.round((parseInt(c.temp_C)*9/5)+32);var wm=c.windspeedMiles!==undefined?c.windspeedMiles:Math.round(parseInt(c.windspeedKmph)*0.621);document.getElementById("wx-content").innerHTML="<div class=wx-main><span class=wx-temp>"+tf+"F</span></div><div class=wx-desc>"+c.weatherDesc[0].value+"</div><div class=wx-detail>Humidity: "+c.humidity+"% Wind: "+wm+" mph</div>";}).catch(function(){document.getElementById("wx-content").innerHTML="<div class=wx-city style=color:#f66>Weather unavailable</div>";});}
 async function poll(){try{var r=await fetch(C.u+"/sessions",{signal:AbortSignal.timeout(3000)});if(!r.ok)throw"not ok";var d=await r.json();var ss=d.sessions||[];var names=[...new Set(ss.map(function(s){return s.model||"Agent";}).filter(Boolean))];var html=names.length>0?names.map(function(n){return"<div class=agent-row><span class=dot></span><span>"+n+"</span></div>";}).join(""):"<span style=color:#777>"+C.n+" agents online</span>";document.getElementById("agent-list").innerHTML=html;}catch(e){document.getElementById("agent-list").innerHTML="<span style=color:#777>"+C.n+" agents online</span>";}}
 function anim(){requestAnimationFrame(anim);tick(performance.now()*0.001);R.render(S,c);}
-function start(){init();grass();parking();walkway();building();garden();courtyard();wxinit();poll();setInterval(poll,C.p);setInterval(clock,1000);clock();window.addEventListener("resize",function(){var asp=window.innerWidth/window.innerHeight;var fs=60;c.left=fs*asp/-2;c.right=fs*asp/2;c.top=fs/2;c.bottom=fs/-2;c.updateProjectionMatrix();R.setSize(window.innerWidth,window.innerHeight);});anim();}
+window.onerror=function(m,u,l,c,e){document.body.insertAdjacentHTML("beforeend","<div style=position:fixed;top:60px;left:0;background:#300;color:#fff;padding:10px;font-family:monospace;z-index:9999>JS ERROR: "+m+" line:"+l+"</div>");}; function start(){try{init();grass();parking();walkway();building();garden();courtyard();wxinit();poll();setInterval(poll,C.p);setInterval(clock,1000);clock();window.addEventListener("resize",function(){var asp=window.innerWidth/window.innerHeight;var fs=60;c.left=fs*asp/-2;c.right=fs*asp/2;c.top=fs/2;c.bottom=fs/-2;c.updateProjectionMatrix();R.setSize(window.innerWidth,window.innerHeight);});anim();}
 start();
 </script>
 </body>
