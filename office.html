@@ -679,7 +679,7 @@ function updateAnimations(time){
   updateDustParticles();
   officeObjects.waterParticles.forEach(function(wp){if(!wp||!wp.userData||!wp.userData.velocities)return;var pos=wp.geometry.attributes.position.array;var vel=wp.userData.velocities;var oy=wp.userData.originY||1.8;for(var i=0;i<vel.length;i++){pos[i*3]+=vel[i].vx;pos[i*3+1]+=vel[i].vy;pos[i*3+2]+=vel[i].vz;if(pos[i*3+1]>oy+1.5)pos[i*3+1]=oy;}wp.geometry.attributes.position.needsUpdate=true;});
   officeObjects.steamParticles.forEach(function(sp){if(!sp||!sp.userData||!sp.userData.velocities)return;var pos=sp.geometry.attributes.position.array;var vel=sp.userData.velocities;var oy=sp.userData.originY||1.8;for(var i=0;i<vel.length;i++){pos[i*3]+=vel[i].vx;pos[i*3+1]+=vel[i].vy;pos[i*3+2]+=vel[i].vz;if(pos[i*3+1]>oy+2){pos[i*3+1]=oy;pos[i*3]=(Math.random()-0.5)*0.3;pos[i*3+2]=(Math.random()-0.5)*0.2;}sp.geometry.attributes.position.needsUpdate=true;}});
-  officeObjects.neonStrips.forEach(function(ns){if(!ns||!ns.mesh||!ns.mesh.material)return;var pulse=0.7+Math.sin(time*1.5+ns.phase)*0.3;ns.mesh.material && (ns.mesh.material.emissiveIntensity=pulse);});
+  // officeObjects.neonStrips animation disabled - strips glow at constant intensity
   if(officeObjects.hockeyBall){var hb=officeObjects.hockeyBall;hb.userData.ballPhase=(hb.userData.ballPhase||0)+0.02;hb.position.x=Math.sin(hb.userData.ballPhase)*2;hb.position.z=Math.cos(hb.userData.ballPhase)*0.8;}
 }
 async function pollGateway(){
