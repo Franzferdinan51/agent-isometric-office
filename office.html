@@ -33,11 +33,26 @@ canvas{display:block}
 .speech-bubble{position:fixed;background:rgba(15,15,30,.92);border:1px solid rgba(100,150,255,.4);border-radius:12px;padding:6px 10px;color:#e8e8ff;font-size:12px;pointer-events:none;transform:translateX(-50%);z-index:200;animation:bubble-pop .25s}
 .speech-bubble::after{content:'';position:absolute;bottom:-6px;left:50%;transform:translateX(-50%);border-left:6px solid transparent;border-right:6px solid transparent;border-top:6px solid rgba(15,15,30,.92)}
 @keyframes bubble-pop{from{opacity:0;transform:translateX(-50%) scale(.8) translateY(4px)}to{opacity:1;transform:translateX(-50%) scale(1) translateY(0)}}
+#weather-widget{position:fixed;top:20px;right:20px;background:rgba(10,10,30,.9);border:1px solid rgba(100,150,255,.25);border-radius:10px;padding:12px 16px;color:#e0e0e0;font-size:13px;z-index:200;min-width:180px;backdrop-filter:blur(8px)}
+#weather-widget .wx-city{font-weight:700;font-size:12px;color:#88aacc;margin-bottom:6px;cursor:pointer;display:flex;align-items:center;gap:4px}
+#weather-widget .wx-city:hover{color:#aaccee}
+#weather-widget .wx-main{display:flex;align-items:center;gap:8px;margin-bottom:4px}
+#weather-widget .wx-temp{font-size:28px;font-weight:700;color:#fff}
+#weather-widget .wx-emoji{font-size:28px}
+#weather-widget .wx-desc{font-size:12px;color:#999;margin-bottom:4px}
+#weather-widget .wx-detail{font-size:11px;color:#777}
+#weather-widget .wx-edit{display:none;margin-top:6px}
+#weather-widget .wx-edit input{background:rgba(255,255,255,.1);border:1px solid rgba(100,150,255,.3);border-radius:6px;color:#fff;padding:4px 8px;font-size:12px;width:130px;outline:none}
+#weather-widget .wx-edit button{background:rgba(100,150,255,.3);border:none;border-radius:4px;color:#fff;padding:4px 8px;font-size:11px;cursor:pointer;margin-left:4px}
+#weather-widget .wx-loading{font-size:11px;color:#888}
+#weather-widget .wx-error{font-size:11px;color:#f66}
 </style>
 </head>
 <body>
 <div id="canvas-container"></div>
 <div id="connection-status"><div class="dot"></div><span id="status-text">Duck Labs</span></div>
+<button id="settings-btn" aria-label="Settings">&#9881;</button>
+<div id="weather-widget"><div class="wx-city" id="wx-city-wrap" title="Click to change">&#128205; <span id="wx-city">Loading...</span></div><div id="wx-content"><div class="wx-loading">Fetching...</div></div><div class="wx-edit" id="wx-edit"><input type="text" id="wx-city-input" placeholder="City"><button id="wx-save-btn">Save</button></div></div>
 <div id="time-indicator"><div class="time-label" id="time-label">Day 12:00</div><input type="range" id="time-slider" min="0" max="24" step="0.5" value="12"></div>
 <div id="agent-panel"><button class="close-btn" onclick="closeAgentPanel()">x</button>
 <h2><span id="agent-emoji">E</span> <span id="agent-name">Agent</span></h2>
@@ -86,7 +101,7 @@ function init(){
   createLights();createDustParticles();createAgents();updateLighting();
   window.addEventListener('resize',onWindowResize);renderer.domElement.addEventListener('click',onMouseClick);
   document.getElementById('time-slider').addEventListener('input',onTimeChange);
-  animate();pollGateway();setInterval(pollGateway,CONFIG.pollInterval);
+  animate();pollGateway();initWeather();setInterval(pollGateway,CONFIG.pollInterval);
 }
 function mkMat(c,opts){opts=opts||{};return new THREE.MeshStandardMaterial(Object.assign({color:c},opts));}
 function mkBox(w,h,d,c,opts){opts=opts||{};const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),mkMat(c,opts));m.castShadow=true;m.receiveShadow=true;return m;}
@@ -694,6 +709,8 @@ function closeAgentPanel(){document.getElementById('agent-panel').classList.remo
 function onWindowResize(){var aspect=window.innerWidth/window.innerHeight;camera.left=CONFIG.frustumSize*aspect/-2;camera.right=CONFIG.frustumSize*aspect/2;camera.top=CONFIG.frustumSize/2;camera.bottom=CONFIG.frustumSize/-2;camera.updateProjectionMatrix();renderer.setSize(window.innerWidth,window.innerHeight);}
 function onTimeChange(event){timeOfDay=parseFloat(event.target.value);updateLighting();}
 function animate(){requestAnimationFrame(animate);var time=performance.now()*0.001;controls.update();updateAnimations(time);updateLighting();renderer.render(scene,camera);}
+function initWeather(){var city=localStorage.getItem("ducklabs_city")||"Huber Heights,OH";document.getElementById("wx-city").textContent=city;fetchWx(city);setInterval(function(){fetchWx(city);},600000);document.getElementById("wx-city-wrap").addEventListener("click",function(){var f=document.getElementById("wx-edit");f.style.display=f.style.display==="block"?"none":"block";if(f.style.display==="block"){document.getElementById("wx-city-input").value=city;document.getElementById("wx-city-input").focus();}});document.getElementById("wx-save-btn").addEventListener("click",function(){var v=document.getElementById("wx-city-input").value.trim();if(v){city=v;localStorage.setItem("ducklabs_city",city);document.getElementById("wx-city").textContent=city;document.getElementById("wx-edit").style.display="none";fetchWx(city);}});document.getElementById("wx-city-input").addEventListener("keydown",function(e){if(e.key==="Enter")document.getElementById("wx-save-btn").click();if(e.key==="Escape")document.getElementById("wx-edit").style.display="none";});document.getElementById("settings-btn").addEventListener("click",function(){document.body.classList.toggle("panels-hidden");});}
+function fetchWx(city){var icons={"Clear":"&#9728;","Sunny":"&#9728;","Partly cloudy":"&#127784;","Cloudy":"&#9729;","Overcast":"&#9729;","Mist":"&#127787;","Fog":"&#127787;","Light rain":"&#127783;","Moderate rain":"&#127783;","Heavy rain":"&#127783;","Rain":"&#127783;","Light snow":"&#127784;","Snow":"&#127784;","Thunderstorm":"&#9928;","Light drizzle":"&#127782;","drizzle":"&#127782;"};function icon(d){var k=(d||"").split(",")[0].trim();return icons[k]||"&#127777;";}fetch("https://wttr.in/"+encodeURIComponent(city)+"?format=j1",{signal:AbortSignal.timeout(5000)}).then(function(r){if(!r.ok)throw"bad";return r.json();}).then(function(j){var c=j.current_condition[0];document.getElementById("wx-content").innerHTML="<div class=\'wx-main\'><span class=\'wx-emoji\'>"+icon(c.weatherDesc[0].value)+"</span><span class=\'wx-temp\'>"+c.temp_C+"C</span></div><div class=\'wx-desc\'>"+c.weatherDesc[0].value+"</div><div class=\'wx-detail\'>&#128167; "+c.humidity+"% humidity &#127788; "+c.windspeedKmph+" km/h</div>";}).catch(function(e){document.getElementById("wx-content").innerHTML="<div class=\'wx-error\'>Weather unavailable</div><div class=\'wx-detail\'>Click city to change</div>";});}
 try{init();console.log('OFFICE: init complete');}catch(e){document.body.insertAdjacentHTML('beforeend','<div style="position:fixed;top:0;left:0;background:#300;color:#fff;padding:20px;font-family:monospace;z-index:9999">ERROR: '+e.message+'<pre>'+e.stack+'</pre></div>');}
 <\/script>
 </body>
