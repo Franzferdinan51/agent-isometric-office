@@ -436,15 +436,15 @@ function createRooftop(){
     pcG.add(mkBox(1.0,0.1,1.0,0x4488cc));L(pcG).position.y=0.8;
     pcG.add(mkBox(1.0,0.8,0.1,0x4488cc));L(pcG).position.set(0,1.2,-0.45);
     for(var cl=0;cl<4;cl++){pcG.add(mkCyl(0.04,0.04,0.8,8,0x666666));L(pcG).position.set(-0.4+(cl%2)*0.8,0.4,-0.4+Math.floor(cl/2)*0.8);}
-    pcG.position.set(-6+i*4,0,-4);pcG.rotation.y=i*0.5;g.add(pcG);
+    pcG.position.set(-6+i*4, 0.05, -4);pcG.rotation.y=i*0.5;g.add(pcG);
   }
   var ptG=new THREE.Group();
   ptG.add(mkCyl(1.5,1.5,0.12,20,0x7a5a3a));L(ptG).position.y=1.0;
   ptG.add(mkCyl(0.3,0.5,0.8,12,0x555555));L(ptG).position.y=0.4;
-  ptG.position.set(-4,0,-4);g.add(ptG);
+  ptG.position.set(-4, 11, -4);g.add(ptG);
   var umG=new THREE.Group();
-  umG.add(mkCyl(0.05,0.05,4,8,0x666666));L(umG).position.y=2;
-  umG.add(mkCyl(0.1,3,0.3,8,0xcc2244));L(umG).position.y=4;L(umG).userData.isUmbrella=true;
+  umG.add(mkCyl(0.05,0.05,4,8,0x666666));L(umG).position.y=2.5;
+  umG.add(mkCyl(0.1,3,0.3,8,0xcc2244));L(umG).position.y=3.5;L(umG).userData.isUmbrella=true;
   umG.position.set(-4,0,-4);g.add(umG);
   var plantData=[{x:-10,z:-6,type:'tree'},{x:9,z:-6,type:'tree'},{x:-10,z:5,type:'plant'},{x:9,z:5,type:'plant'},{x:-4,z:7,type:'plant'},{x:4,z:7,type:'plant'}];
   plantData.forEach(function(pd){
@@ -460,7 +460,7 @@ function createRooftop(){
       plantG.add(mkSphere(0.1,8,0xff4444));L(plantG).position.set(0.2,1.0,0);
       plantG.add(mkSphere(0.1,8,0xffcc00));L(plantG).position.set(-0.15,0.95,0.15);
     }
-    plantG.position.set(pd.x,0,pd.z);g.add(plantG);
+    plantG.position.set(pd.x, -0.425, pd.z);g.add(plantG);
   });
   var stringG=new THREE.Group();
   for(var s=0;s<12;s++){
