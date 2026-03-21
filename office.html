@@ -63,7 +63,9 @@ canvas{display:block}
 <script>
 
 
-const CONFIG={gatewayUrl:'http://localhost:18789',dashboardApiUrl:'http://localhost:3001/api/gateway',pollInterval:3000,agentCount:6,officeWidth:90,officeDepth:90,frustumSize:80};
+// Duckets' live agent sessions — mapped from gateway proxy (http://localhost:18790)
+var DESK_LABELS=['🦆 DuckBot','🏠 office-polish-live','📐 office-rooms-expansion','🎯 office-behaviors-zones','🔌 office-gateway-proxy','🎨 office-ui-panels'];
+const CONFIG={gatewayUrl:'http://localhost:18790',dashboardApiUrl:'http://localhost:3001/api/gateway',pollInterval:3000,agentCount:6,officeWidth:90,officeDepth:90,frustumSize:80};
 let scene,camera,renderer,controls,agents=[],clock;
 let officeObjects={monitors:[],plants:[],mugs:[],lamps:[],blinkLights:[],steamParticles:[],neonStrips:[],waterParticles:[],chairs:[],desks:[],hockeyBall:null};
 let ambientLights={main:null,fill:null};
@@ -658,21 +660,87 @@ function updateAnimations(time){
   if(officeObjects.hockeyBall){var hb=officeObjects.hockeyBall;hb.userData.ballPhase=(hb.userData.ballPhase||0)+0.02;hb.position.x=Math.sin(hb.userData.ballPhase)*2;hb.position.z=Math.cos(hb.userData.ballPhase)*0.8;}
 }
 async function pollGateway(){
-  var urls=[CONFIG.gatewayUrl+'/api/sessions',CONFIG.dashboardApiUrl];var ok=false;
-  for(var ui=0;ui<urls.length;ui++){try{var response=await fetch(urls[ui],{signal:AbortSignal.timeout(3000)});if(response.ok){var data=await response.json();updateFromGateway(data);ok=true;break;}}catch(e){}}
-  if(!ok){updateConnectionStatus(false);updateDemoAgents();}
+  var urls=[CONFIG.gatewayUrl+'/sessions',CONFIG.dashboardApiUrl];var ok=false;var lastData=null;
+  for(var ui=0;ui<urls.length;ui++){try{var response=await fetch(urls[ui],{signal:AbortSignal.timeout(3000)});if(response.ok){lastData=await response.json();updateFromGateway(lastData);ok=true;break;}}catch(e){}}
+  if(!ok){updateConnectionStatus(false,null);updateDemoAgents();}
+  else{updateConnectionStatus(true,lastData.sessions||[]);}
 }
+function getModelName(modelId){
+  if(!modelId)return'-';
+  var m=modelId.toLowerCase();
+  if(m.includes('minimax-m2.7'))return'MiniMax M2.7 (Sub-agent)';
+  if(m.includes('qwen3.5-plus'))return'Qwen 3.5 Plus (Reasoning)';
+  if(m.includes('minimax-m2.5'))return'MiniMax M2.5 (Fast)';
+  if(m.includes('minimax-m2.7'))return'MiniMax M2.7 (Sub-agent)';
+  if(m.includes('kimi-k2.5'))return'Kimi K2.5 (Vision)';
+  if(m.includes('glm-5'))return'GLM-5 (Coding)';
+  if(m.includes('glm-4'))return'GLM-4 (Fast)';
+  if(m.includes('qwen3.5'))return'Qwen 3.5 (Bailian)';
+  if(m.includes('qwen3'))return'Qwen 3.x';
+  if(m.includes('claude'))return'Claude Code';
+  if(m.includes('codex'))return'Codex';
+  return modelId;
+}
+
+// Desk label lookup (maps session label → desk index 0-5)
+var SESSION_DESK_MAP={
+  '':0, // main session → desk 0
+  'office-polish-live':1,
+  'office-rooms-expansion':2,
+  'office-behaviors-zones':3,
+  'office-gateway-proxy':4,
+  'office-ui-panels':5,
+  'office-minigames':5,
+};
+
 function updateFromGateway(data){
-  var sessions=data.sessions||[];var activityEvents=[];
-  agents.forEach(function(agent,i){var session=sessions[i]||sessions[i%sessions.length];if(session){var status='idle';if(session.isActive||session.behavior==='tool_use')status='active';else if(session.behavior==='thinking')status='thinking';else if(session.aborted)status='error';updateAgentStatus(agent,status,session);if(session.statusSummary)activityEvents.push({agent:session.name||'Agent '+(i+1),action:session.statusSummary,time:new Date().toLocaleTimeString()});}});
+  var sessions=data.sessions||[];
+  var activityEvents=[];
+  var sessionCount=sessions.length;
+  agents.forEach(function(agent,i){
+    // Match session by desk mapping (label → desk index), then fall back to index % count
+    var session=null;
+    var mappedDeskIdx=-1;
+    for(var si=0;si<sessionCount;si++){
+      var s=sessions[si];
+      var lbl=(s.label||'').toLowerCase().replace(/[^a-z0-9-]/g,'');
+      if(SESSION_DESK_MAP[lbl]===i){session=s;break;}
+    }
+    if(!session)session=sessions[i]||sessions[i%Math.max(sessionCount,1)];
+    if(session){
+      var status='idle';
+      if(session.isActive||session.behavior==='working'||session.behavior==='receiving_task')status='active';
+      else if(session.behavior==='thinking')status='thinking';
+      else if(session.aborted||session.behavior==='panicking')status='error';
+      var friendlyModel=getModelName(session.model);
+      var enrichedData=Object.assign({},session,{friendlyModel:friendlyModel});
+      updateAgentStatus(agent,status,enrichedData);
+      if(session.statusSummary)activityEvents.push({agent:(session.label||session.name||DESK_LABELS[i]||'Agent'),action:session.statusSummary,time:new Date().toLocaleTimeString()});
+    }
+  });
   if(activityEvents.length>0)updateTicker(activityEvents);
+  updateDucketsInfo&&updateDucketsInfo(sessions);
 }
 function updateDemoAgents(){
-  var statuses=['active','idle','thinking','active','idle','active'];var names=['DuckBot','ResearchBot','CodeBot','TaskBot','MonitorBot','HelperBot'];var tasks=['Processing messages','Waiting for tasks','Analyzing patterns','Running jobs','Monitoring health','Assisting queries'];
-  agents.forEach(function(agent,i){updateAgentStatus(agent,statuses[i],{name:names[i],model:'bailian/qwen3.5-plus',tokens:Math.floor(Math.random()*50000),task:tasks[i]});});
-  if(Math.random()>0.7){var events=[{agent:names[Math.floor(Math.random()*names.length)],action:tasks[Math.floor(Math.random()*tasks.length)],time:new Date().toLocaleTimeString()}];updateTicker(events);}
+  var statuses=['active','idle','thinking','active','idle','active'];
+  var models=['MiniMax M2.7 (Sub-agent)','Qwen 3.5 Plus (Reasoning)','MiniMax M2.5 (Fast)','MiniMax M2.7 (Sub-agent)','Kimi K2.5 (Vision)','MiniMax M2.7 (Sub-agent)'];
+  var tasks=['Orchestrating agents','Polishing live UI','Expanding office zones','Implementing behaviors','Building gateway proxy','Rendering UI panels'];
+  agents.forEach(function(agent,i){updateAgentStatus(agent,statuses[i],{name:DESK_LABELS[i]||'Agent',friendlyModel:models[i],tokens:Math.floor(Math.random()*150000),task:tasks[i]});});
+  if(Math.random()>0.7){var events=[{agent:DESK_LABELS[Math.floor(Math.random()*DESK_LABELS.length)],action:tasks[Math.floor(Math.random()*tasks.length)],time:new Date().toLocaleTimeString()}];updateTicker(events);}
 }
-function updateConnectionStatus(connected){var statusEl=document.getElementById('connection-status');var textEl=document.getElementById('status-text');if(connected){statusEl.classList.remove('disconnected');textEl.textContent='Live - Gateway Connected';}else{statusEl.classList.add('disconnected');textEl.textContent='Demo Mode (Gateway Offline)';}}
+function updateConnectionStatus(connected,sessions){
+  var statusEl=document.getElementById('connection-status');
+  var textEl=document.getElementById('status-text');
+  if(connected){
+    statusEl.classList.remove('disconnected');
+    var count=sessions?sessions.length:0;
+    var active=(sessions||[]).filter(function(s){return s.isActive;}).length;
+    textEl.textContent='Live @HuberHeights \u2022 '+active+'/'+count+' agents \u2022 MiniMax M2.7';
+  }else{
+    statusEl.classList.add('disconnected');
+    textEl.textContent='Demo Mode \u2022 Gateway Offline';
+  }
+}
 function updateTicker(events){var tickerContent=document.getElementById('ticker-content');var messages=events.map(function(e){return e.agent+': '+e.action+' ('+e.time+')';}).join(' | ');tickerContent.textContent=messages+' | '+tickerContent.textContent.split(' | ').slice(0,3).join(' | ');}
 function onMouseClick(event){
   var rect=renderer.domElement.getBoundingClientRect();mouse.x=((event.clientX-rect.left)/rect.width)*2-1;mouse.y=-((event.clientY-rect.top)/rect.height)*2+1;
@@ -681,13 +749,18 @@ function onMouseClick(event){
 }
 function showAgentPanel(agent){
   selectedAgent=agent;var panel=document.getElementById('agent-panel');var data=agent.userData.agentData||{};
-  document.getElementById('agent-name').textContent=data.name||'Agent '+(agent.userData.agentIndex+1);
-  document.getElementById('agent-emoji').textContent=data.emoji||'E';
+  // Use session label if available, else desk label, else fallback
+  var displayName=data.label||data.name||DESK_LABELS[agent.userData.agentIndex]||'Agent '+(agent.userData.agentIndex+1);
+  var emoji=data.emoji||'🤖';
+  document.getElementById('agent-name').textContent=displayName;
+  document.getElementById('agent-emoji').textContent=emoji;
   var statusBadge=document.getElementById('agent-status');statusBadge.textContent=(agent.userData.status||'Active').charAt(0).toUpperCase()+(agent.userData.status||'Active').slice(1);
-  statusBadge.style.background='#'+STATUS_COLORS[agent.userData.status||'active'].toString(16).padStart(6,'0');statusBadge.style.color='#fff';
-  document.getElementById('agent-model').textContent=data.model||'-';
-  document.getElementById('agent-tokens').textContent=data.tokens?data.tokens.toLocaleString():'-';
-  document.getElementById('agent-task').textContent=data.task||data.statusSummary||'-';
+  statusBadge.style.background='#'+Number(STATUS_COLORS[agent.userData.status]||STATUS_COLORS.active).toString(16).padStart(6,'0');statusBadge.style.color='#fff';
+  // Prefer friendly model name
+  var modelDisplay=(data.friendlyModel)||getModelName(data.model)||data.model||'-';
+  document.getElementById('agent-model').textContent=modelDisplay;
+  document.getElementById('agent-tokens').textContent=data.totalTokens?data.totalTokens.toLocaleString():(data.tokens?data.tokens.toLocaleString():'-');
+  document.getElementById('agent-task').textContent=data.statusSummary||data.task||(data.lastMessagePreview?data.lastMessagePreview.slice(0,80)+'...':'-');
   panel.classList.add('visible');
 }
 function closeAgentPanel(){document.getElementById('agent-panel').classList.remove('visible');selectedAgent=null;}
