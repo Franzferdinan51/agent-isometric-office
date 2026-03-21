@@ -5,421 +5,255 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>OpenClaw Agent Office - Isometric 3D</title>
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { 
-      overflow: hidden; 
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    /* LOADING SCREEN */
+    #loading-screen {
+      position: fixed;
+      inset: 0;
       background: #0a0a0f;
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    }
-    #canvas-container { 
-      width: 100vw; 
-      height: 100vh; 
-      position: relative;
-    }
-    canvas { display: block; }
-    
-    /* Agent Info Panel */
-    #agent-panel {
-      position: fixed;
-      top: 20px;
-      right: 20px;
-      background: rgba(10, 10, 20, 0.95);
-      border: 1px solid rgba(100, 150, 255, 0.3);
-      border-radius: 12px;
-      padding: 20px;
-      min-width: 280px;
-      max-width: 350px;
-      color: #e0e0e0;
-      display: none;
-      backdrop-filter: blur(10px);
-      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
-      z-index: 100;
-    }
-    #agent-panel.visible { display: block; }
-    #agent-panel h2 {
-      font-size: 18px;
-      margin-bottom: 12px;
-      color: #fff;
       display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-    #agent-panel .status-badge {
-      display: inline-block;
-      padding: 3px 10px;
-      border-radius: 12px;
-      font-size: 11px;
-      font-weight: 600;
-      text-transform: uppercase;
-    }
-    #agent-panel .info-row {
-      display: flex;
-      justify-content: space-between;
-      padding: 8px 0;
-      border-bottom: 1px solid rgba(255,255,255,0.1);
-    }
-    #agent-panel .info-label { color: #888; font-size: 13px; }
-    #agent-panel .info-value { color: #fff; font-size: 13px; }
-    #agent-panel .close-btn {
-      position: absolute;
-      top: 10px;
-      right: 10px;
-      background: none;
-      border: none;
-      color: #666;
-      font-size: 20px;
-      cursor: pointer;
-      transition: color 0.2s;
-    }
-    #agent-panel .close-btn:hover { color: #fff; }
-    
-    /* Activity Ticker */
-    #activity-ticker {
-      position: fixed;
-      bottom: 20px;
-      left: 50%;
-      transform: translateX(-50%);
-      background: rgba(10, 10, 20, 0.9);
-      border: 1px solid rgba(100, 150, 255, 0.2);
-      border-radius: 8px;
-      padding: 10px 20px;
-      color: #0f0;
-      font-family: 'Monaco', 'Menlo', monospace;
-      font-size: 13px;
-      min-width: 400px;
-      max-width: 600px;
-      overflow: hidden;
-      z-index: 100;
-    }
-    #ticker-content {
-      white-space: nowrap;
-      animation: ticker-scroll 20s linear infinite;
-    }
-    @keyframes ticker-scroll {
-      0% { transform: translateX(100%); }
-      100% { transform: translateX(-100%); }
-    }
-    
-    /* Day/Night Indicator */
-    #time-indicator {
-      position: fixed;
-      top: 20px;
-      left: 20px;
-      background: rgba(10, 10, 20, 0.9);
-      border: 1px solid rgba(100, 150, 255, 0.2);
-      border-radius: 8px;
-      padding: 12px 16px;
-      color: #e0e0e0;
-      font-size: 13px;
-      z-index: 100;
-    }
-    #time-indicator .time-label {
-      font-weight: 600;
-      margin-bottom: 4px;
-    }
-    #time-slider {
-      width: 150px;
-      cursor: pointer;
-    }
-    
-    /* Connection Status */
-    #connection-status {
-      position: fixed;
-      top: 20px;
-      left: 50%;
-      transform: translateX(-50%);
-      background: rgba(10, 10, 20, 0.9);
-      border-radius: 8px;
-      padding: 8px 16px;
-      color: #0f0;
-      font-size: 12px;
-      z-index: 100;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-    #connection-status .dot {
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      background: #0f0;
-      animation: pulse 2s infinite;
-    }
-    #connection-status.disconnected .dot { background: #f00; animation: none; }
-    #connection-status.disconnected { color: #f00; }
-    @keyframes pulse {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.5; }
-    }
-    
-    /* ============================================================
-       DASHBOARD PANELS — Live Agent Overlays
-       ============================================================ */
-
-    /* Panel Base */
-    .office-panel {
-      position: fixed;
-      background: rgba(10, 10, 20, 0.92);
-      border: 1px solid rgba(100, 150, 255, 0.25);
-      border-radius: 10px;
-      color: #e0e0e0;
-      backdrop-filter: blur(12px);
-      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
-      z-index: 200;
-      overflow: hidden;
-    }
-    .panel-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 10px 14px;
-      cursor: pointer;
-      user-select: none;
-      border-bottom: 1px solid rgba(100, 150, 255, 0.15);
-    }
-    .panel-header h3 { font-size: 13px; font-weight: 600; color: #fff; display: flex; align-items: center; gap: 6px; }
-    .panel-toggle {
-      background: none;
-      border: none;
-      color: #888;
-      font-size: 16px;
-      cursor: pointer;
-      padding: 2px 4px;
-      transition: transform 0.3s;
-    }
-    .office-panel.collapsed .panel-toggle { transform: rotate(-90deg); }
-    .panel-body {
-      padding: 12px;
-      max-height: 400px;
-      overflow-y: auto;
-      transition: max-height 0.3s ease, padding 0.3s ease;
-    }
-    .office-panel.collapsed .panel-body { max-height: 0; padding: 0 12px; overflow: hidden; }
-    .panel-body::-webkit-scrollbar { width: 4px; }
-    .panel-body::-webkit-scrollbar-track { background: transparent; }
-    .panel-body::-webkit-scrollbar-thumb { background: rgba(100,150,255,0.3); border-radius: 4px; }
-
-    /* 1. TOKEN PANEL — Top Left */
-    #token-panel { top: 20px; left: 20px; width: 280px; }
-    .token-summary { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px; }
-    .token-stat { background: rgba(255,255,255,0.05); border-radius: 6px; padding: 8px 10px; text-align: center; }
-    .token-stat .label { font-size: 10px; color: #888; text-transform: uppercase; }
-    .token-stat .value { font-size: 18px; font-weight: 700; }
-    .token-stat .value.input { color: #60a5fa; }
-    .token-stat .value.output { color: #34d399; }
-    .token-stat .value.total { color: #a78bfa; }
-    .token-stat .value.cost { color: #fbbf24; }
-    .token-bar-chart { margin-top: 10px; }
-    .token-bar-label { display: flex; justify-content: space-between; font-size: 11px; color: #888; margin-bottom: 4px; }
-    .token-bar-track { height: 8px; background: rgba(255,255,255,0.1); border-radius: 4px; overflow: hidden; display: flex; }
-    .token-bar-segment { height: 100%; transition: width 0.5s ease; }
-    .input-seg { background: linear-gradient(90deg, #3b82f6, #60a5fa); }
-    .output-seg { background: linear-gradient(90deg, #10b981, #34d399); }
-    .model-breakdown { margin-top: 10px; }
-    .model-row { display: flex; align-items: center; gap: 8px; padding: 5px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
-    .model-row:last-child { border-bottom: none; }
-    .model-name { font-size: 12px; color: #ccc; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .model-count { font-size: 11px; color: #888; }
-    .model-bar { height: 4px; width: 60px; background: rgba(255,255,255,0.1); border-radius: 2px; overflow: hidden; }
-    .model-bar-fill { height: 100%; background: #a78bfa; border-radius: 2px; transition: width 0.5s; }
-
-    /* 2. SESSION PANEL — Left of agent-panel */
-    #session-panel { top: 20px; right: 390px; width: 260px; max-height: calc(100vh - 160px); }
-    .session-item {
-      padding: 8px 10px;
-      border-radius: 6px;
-      margin-bottom: 6px;
-      background: rgba(255,255,255,0.04);
-      border-left: 3px solid transparent;
-      cursor: pointer;
-      transition: background 0.2s;
-    }
-    .session-item:hover { background: rgba(100,150,255,0.12); }
-    .session-item.active-session { border-left-color: #00ff88; }
-    .session-item.idle-session { border-left-color: #ffaa00; }
-    .session-item.error-session { border-left-color: #ff4444; }
-    .session-item.thinking-session { border-left-color: #4488ff; }
-    .session-header { display: flex; align-items: center; gap: 6px; margin-bottom: 3px; }
-    .session-emoji { font-size: 14px; }
-    .session-name { font-size: 13px; font-weight: 600; color: #fff; flex: 1; }
-    .status-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
-    .status-dot.active { background: #00ff88; box-shadow: 0 0 6px #00ff88; }
-    .status-dot.idle { background: #ffaa00; }
-    .status-dot.error { background: #ff4444; }
-    .status-dot.thinking { background: #4488ff; animation: blink-dot 1s infinite; }
-    @keyframes blink-dot { 0%,100%{opacity:1} 50%{opacity:0.3} }
-    .session-meta { display: flex; justify-content: space-between; font-size: 11px; }
-    .session-model { font-size: 11px; color: #555; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 160px; }
-    .session-tokens { color: #a78bfa; }
-    .session-age { color: #888; }
-    .no-sessions { text-align: center; padding: 20px; color: #666; font-size: 12px; }
-
-    /* 3. EVENT FEED PANEL — Bottom Left */
-    #event-panel { bottom: 80px; left: 20px; width: 340px; max-height: 300px; }
-    .event-item {
-      display: flex;
-      gap: 8px;
-      padding: 6px 0;
-      border-bottom: 1px solid rgba(255,255,255,0.05);
-      font-size: 12px;
-      animation: event-fadein 0.3s ease;
-    }
-    @keyframes event-fadein { from{opacity:0;transform:translateY(-4px)} to{opacity:1;transform:none} }
-    .event-item:last-child { border-bottom: none; }
-    .event-time { color: #555; font-size: 10px; flex-shrink: 0; min-width: 55px; }
-    .event-badge {
-      flex-shrink: 0;
-      width: 14px;
-      height: 14px;
-      border-radius: 3px;
-      display: flex;
+      flex-direction: column;
       align-items: center;
       justify-content: center;
-      font-size: 9px;
-      margin-top: 1px;
+      z-index: 9999;
+      transition: opacity 0.8s ease;
     }
-    .event-badge.started { background: rgba(0,255,136,0.2); color: #00ff88; }
-    .event-badge.finished { background: rgba(52,211,153,0.2); color: #34d399; }
-    .event-badge.tool-call { background: rgba(96,165,250,0.2); color: #60a5fa; }
-    .event-badge.error { background: rgba(239,68,68,0.2); color: #ef4444; }
-    .event-badge.thinking { background: rgba(68,136,255,0.2); color: #4488ff; }
-    .event-badge.message { background: rgba(251,191,36,0.2); color: #fbbf24; }
-    .event-body { flex: 1; }
-    .event-agent { color: #a78bfa; font-weight: 600; }
-    .event-text { color: #ccc; line-height: 1.4; }
-    .no-events { text-align: center; padding: 20px; color: #555; font-size: 12px; }
-
-    /* 4. HEALTH WIDGET — Bottom Right */
-    #health-widget { bottom: 20px; right: 20px; width: 210px; padding: 10px 14px; }
-    .health-row { display: flex; align-items: center; justify-content: space-between; padding: 3px 0; font-size: 12px; }
-    .health-label { color: #888; }
-    .health-value { color: #fff; font-weight: 600; display: flex; align-items: center; gap: 6px; }
-    .health-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
-    .health-dot.healthy { background: #00ff88; box-shadow: 0 0 6px #00ff88; }
-    .health-dot.warn { background: #ffaa00; }
-    .health-dot.error { background: #ff4444; animation: blink-dot 1s infinite; }
-    .health-divider { height: 1px; background: rgba(255,255,255,0.1); margin: 5px 0; }
-    .health-time { font-size: 11px; color: #888; text-align: center; }
-    .health-uptime { font-size: 10px; color: #555; text-align: center; }
-
-    /* 5. MINI MAP — replaces legend */
-    #mini-map { bottom: 20px; left: 20px; width: 200px; padding: 10px 14px; }
-    .map-area {
-      position: relative;
-      width: 172px;
-      height: 90px;
-      margin: 8px auto 0;
-      background: rgba(255,255,255,0.03);
-      border: 1px solid rgba(100,150,255,0.15);
-      border-radius: 6px;
-      overflow: hidden;
-    }
-    .map-wall { position: absolute; background: rgba(100,150,255,0.18); }
-    .map-wall.back { top: 5px; left: 8%; right: 8%; height: 2px; }
-    .map-wall.left { top: 0; bottom: 0; left: 8%; width: 2px; }
-    .map-wall.right { top: 0; bottom: 0; right: 8%; width: 2px; }
-    .map-desk { position: absolute; width: 16px; height: 9px; background: rgba(74,55,40,0.5); border: 1px solid rgba(100,150,255,0.2); border-radius: 2px; }
-    .map-agent-dot {
-      position: absolute;
-      width: 10px;
-      height: 10px;
+    #loading-screen.hidden { opacity: 0; pointer-events: none; }
+    .loading-logo {
+      width: 72px; height: 72px;
+      border: 4px solid rgba(100,150,255,0.2);
+      border-top-color: #6496ff;
       border-radius: 50%;
-      cursor: pointer;
-      transform: translate(-50%, -50%);
-      border: 2px solid rgba(255,255,255,0.4);
-      transition: transform 0.15s, box-shadow 0.15s;
+      animation: spin 1s linear infinite;
+      margin-bottom: 20px;
     }
-    .map-agent-dot:hover { transform: translate(-50%, -50%) scale(1.5); }
-    .map-agent-dot.active { background: #00ff88; box-shadow: 0 0 8px #00ff88; }
-    .map-agent-dot.idle { background: #ffaa00; }
-    .map-agent-dot.error { background: #ff4444; }
-    .map-agent-dot.thinking { background: #4488ff; animation: blink-dot 1s infinite; }
-    .map-label { position: absolute; font-size: 8px; color: rgba(255,255,255,0.3); pointer-events: none; text-transform: uppercase; letter-spacing: 0.5px; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .loading-text {
+      color: #6496ff;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      font-size: 16px; font-weight: 500; letter-spacing: 0.05em;
+    }
+    .loading-sub { color: #444; font-size: 12px; margin-top: 8px; }
 
-    /* Legend */
+    body { overflow: hidden; background: #0a0a0f; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+    #canvas-container { width: 100vw; height: 100vh; position: relative; }
+    canvas { display: block; }
+    #canvas-container::after {
+      content: ''; position: absolute; inset: 0; pointer-events: none;
+      box-shadow: inset 0 0 140px rgba(0,0,0,0.65); z-index: 10;
+    }
+
+    /* CONNECTION STATUS */
+    #connection-status {
+      position: fixed; top: 16px; left: 50%; transform: translateX(-50%);
+      background: rgba(10,10,20,0.92); border: 1px solid rgba(100,150,255,0.2);
+      border-radius: 20px; padding: 7px 16px; color: #0f0; font-size: 12px;
+      z-index: 100; display: flex; align-items: center; gap: 8px;
+      backdrop-filter: blur(8px); transition: all 0.3s;
+    }
+    #connection-status .dot {
+      width: 8px; height: 8px; border-radius: 50%; background: #0f0;
+      transition: background 0.3s;
+    }
+    #connection-status .dot.flash { animation: dot-flash 0.6s ease-out; }
+    @keyframes dot-flash {
+      0% { background: #fff; transform: scale(1.6); }
+      100% { background: #0f0; transform: scale(1); }
+    }
+    #connection-status.disconnected .dot { background: #f44; }
+    #connection-status.disconnected { color: #f44; border-color: rgba(255,68,68,0.3); }
+    @keyframes pulse-dot { 0%,100% { opacity:1; } 50% { opacity:0.4; } }
+    #connection-status .dot:not(.disconnected) { animation: pulse-dot 2s infinite; }
+
+    /* TIME CONTROL */
+    #time-indicator {
+      position: fixed; top: 16px; left: 16px;
+      background: rgba(10,10,20,0.92); border: 1px solid rgba(100,150,255,0.2);
+      border-radius: 12px; padding: 12px 16px; color: #e0e0e0; font-size: 13px;
+      z-index: 100; backdrop-filter: blur(8px);
+    }
+    #time-indicator .time-label { font-weight: 600; margin-bottom: 8px; display: flex; align-items: center; gap: 6px; }
+    #time-slider { width: 140px; cursor: pointer; accent-color: #6496ff; }
+
+    /* AGENT PANEL */
+    #agent-panel {
+      position: fixed; top: 72px; right: 16px;
+      background: rgba(10,10,20,0.95); border: 1px solid rgba(100,150,255,0.3);
+      border-radius: 14px; padding: 20px; width: 300px; max-width: calc(100vw - 32px);
+      color: #e0e0e0; display: none; backdrop-filter: blur(12px);
+      box-shadow: 0 10px 40px rgba(0,0,0,0.6); z-index: 100;
+    }
+    #agent-panel.visible { display: block; animation: panel-in 0.2s ease; }
+    @keyframes panel-in { from { opacity:0; transform:translateY(-8px); } to { opacity:1; transform:translateY(0); } }
+    #agent-panel h2 { font-size: 17px; margin-bottom: 14px; color: #fff; display: flex; align-items: center; gap: 8px; }
+    #agent-panel .status-badge {
+      display: inline-block; padding: 3px 10px; border-radius: 12px;
+      font-size: 11px; font-weight: 600; text-transform: uppercase;
+    }
+    #agent-panel .info-row {
+      display: flex; justify-content: space-between; padding: 8px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.07); font-size: 13px;
+    }
+    #agent-panel .info-row:last-child { border-bottom: none; }
+    #agent-panel .info-label { color: #777; }
+    #agent-panel .info-value { color: #fff; max-width: 65%; text-align: right; word-break: break-word; }
+    #agent-panel .close-btn {
+      position: absolute; top: 8px; right: 8px; background: none; border: none;
+      color: #555; font-size: 22px; cursor: pointer; transition: color 0.2s;
+      width: 44px; height: 44px; display: flex; align-items: center; justify-content: center;
+      border-radius: 8px;
+    }
+    #agent-panel .close-btn:hover { color: #fff; background: rgba(255,255,255,0.05); }
+
+    /* ACTIVITY TICKER */
+    #activity-ticker {
+      position: fixed; bottom: 16px; left: 50%; transform: translateX(-50%);
+      background: rgba(10,10,20,0.9); border: 1px solid rgba(100,150,255,0.2);
+      border-radius: 10px; padding: 10px 20px; color: #0f0;
+      font-family: 'Monaco','Menlo',monospace; font-size: 12px;
+      min-width: 320px; max-width: calc(100vw - 32px); overflow: hidden;
+      z-index: 100; backdrop-filter: blur(8px);
+    }
+    #ticker-scroll {
+      display: inline-block; white-space: nowrap;
+      animation: ticker-scroll 30s linear infinite;
+    }
+    @keyframes ticker-scroll { 0% { transform: translateX(100%); } 100% { transform: translateX(-100%); } }
+
+    /* MINI-MAP */
+    #mini-map {
+      position: fixed; bottom: 80px; right: 16px;
+      width: 160px; height: 120px;
+      background: rgba(10,10,20,0.9); border: 1px solid rgba(100,150,255,0.3);
+      border-radius: 10px; overflow: hidden; z-index: 100;
+      backdrop-filter: blur(8px); display: none;
+    }
+    #mini-map.visible { display: block; }
+    #mini-map-label {
+      position: absolute; top: 4px; left: 8px; font-size: 10px;
+      color: rgba(100,150,255,0.7); font-weight: 600;
+      text-transform: uppercase; letter-spacing: 0.05em; z-index: 1;
+    }
+
+    /* LEGEND */
     #legend {
-      position: fixed;
-      bottom: 160px;
-      left: 20px;
-      background: rgba(10, 10, 20, 0.9);
-      border: 1px solid rgba(100, 150, 255, 0.2);
-      border-radius: 8px;
-      padding: 12px 16px;
-      color: #e0e0e0;
-      font-size: 12px;
-      z-index: 100;
+      position: fixed; bottom: 80px; left: 16px;
+      background: rgba(10,10,20,0.9); border: 1px solid rgba(100,150,255,0.2);
+      border-radius: 10px; padding: 12px 16px; color: #e0e0e0; font-size: 12px;
+      z-index: 100; backdrop-filter: blur(8px);
     }
-    #legend h4 { margin-bottom: 8px; font-size: 13px; }
+    #legend h4 { margin-bottom: 8px; font-size: 12px; color: #aaa; }
     .legend-item { display: flex; align-items: center; gap: 8px; margin: 4px 0; }
-    .legend-color { width: 12px; height: 12px; border-radius: 50%; }
+    .legend-color { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; }
 
-    /* Instructions */
+    /* INSTRUCTIONS */
     #instructions {
-      position: fixed;
-      bottom: 20px;
-      right: 20px;
-      background: rgba(10, 10, 20, 0.8);
-      border-radius: 8px;
-      padding: 10px 14px;
-      color: #888;
-      font-size: 11px;
-      z-index: 100;
+      position: fixed; bottom: 16px; right: 16px;
+      background: rgba(10,10,20,0.8); border-radius: 8px;
+      padding: 10px 14px; color: #666; font-size: 11px; z-index: 100;
+      backdrop-filter: blur(8px); line-height: 1.6;
+    }
+    #instructions kbd {
+      display: inline-block; padding: 1px 5px; background: rgba(255,255,255,0.1);
+      border-radius: 3px; font-family: inherit; font-size: 10px; color: #999;
     }
 
-    /* Speech bubbles */
-    .speech-bubble {
-      position: fixed;
-      background: rgba(15, 15, 30, 0.92);
-      border: 1px solid rgba(100, 150, 255, 0.4);
-      border-radius: 12px;
-      padding: 6px 10px;
-      color: #e8e8ff;
-      font-size: 12px;
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-      pointer-events: none;
-      transform: translateX(-50%);
-      z-index: 200;
-      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
-      backdrop-filter: blur(8px);
-      animation: bubble-pop 0.25s ease-out;
-      max-width: 200px;
-      white-space: normal;
-      text-align: center;
+    /* SOUND TOGGLE */
+    #sound-toggle {
+      position: fixed; top: 16px; right: 16px;
+      background: rgba(10,10,20,0.92); border: 1px solid rgba(100,150,255,0.2);
+      border-radius: 20px; padding: 7px 14px; color: #777; font-size: 12px;
+      z-index: 100; cursor: pointer; backdrop-filter: blur(8px); transition: all 0.2s;
+      display: flex; align-items: center; gap: 6px; min-width: 44px; min-height: 44px;
     }
-    .speech-bubble::after {
-      content: '';
-      position: absolute;
-      bottom: -6px;
-      left: 50%;
-      transform: translateX(-50%);
-      border-left: 6px solid transparent;
-      border-right: 6px solid transparent;
-      border-top: 6px solid rgba(15, 15, 30, 0.92);
+    #sound-toggle:hover { color: #fff; border-color: rgba(100,150,255,0.5); }
+    #sound-toggle.active { color: #6496ff; border-color: rgba(100,150,255,0.5); }
+
+    /* SHORTCUTS HINT */
+    #shortcuts-hint {
+      position: fixed; top: 50%; left: 50%; transform: translate(-50%,-50%);
+      background: rgba(10,10,20,0.97); border: 1px solid rgba(100,150,255,0.3);
+      border-radius: 16px; padding: 24px 32px; color: #e0e0e0; font-size: 13px;
+      z-index: 200; display: none; backdrop-filter: blur(12px);
+      box-shadow: 0 20px 60px rgba(0,0,0,0.8); min-width: 300px;
     }
-    @keyframes bubble-pop {
-      from { opacity: 0; transform: translateX(-50%) scale(0.8) translateY(4px); }
-      to   { opacity: 1; transform: translateX(-50%) scale(1) translateY(0); }
+    #shortcuts-hint.visible { display: block; }
+    #shortcuts-hint h3 { margin-bottom: 16px; font-size: 15px; color: #fff; }
+    #shortcuts-hint .shortcut-row {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 7px 0; border-bottom: 1px solid rgba(255,255,255,0.06);
     }
+    #shortcuts-hint .shortcut-row:last-child { border-bottom: none; }
+    #shortcuts-hint kbd {
+      display: inline-block; padding: 3px 8px;
+      background: rgba(100,150,255,0.15); border: 1px solid rgba(100,150,255,0.3);
+      border-radius: 4px; font-family: inherit; font-size: 12px; color: #6496ff;
+      min-width: 44px; text-align: center;
+    }
+    #shortcuts-hint .close-shortcuts {
+      position: absolute; top: 8px; right: 8px; background: none; border: none;
+      color: #555; font-size: 20px; cursor: pointer; width: 44px; height: 44px;
+      display: flex; align-items: center; justify-content: center; border-radius: 8px;
+    }
+    #shortcuts-hint .close-shortcuts:hover { color: #fff; }
+
+    /* RESPONSIVE: TABLET */
+    @media (max-width: 768px) {
+      #time-indicator { top: 56px; left: 8px; padding: 8px 12px; }
+      #time-slider { width: 100px; }
+      #connection-status { top: 56px; font-size: 11px; padding: 5px 12px; }
+      #sound-toggle { top: 56px; right: 8px; padding: 5px 10px; }
+      #agent-panel { top: 110px; right: 8px; left: 8px; width: auto; max-width: 100%; }
+      #activity-ticker { bottom: 8px; left: 8px; right: 8px; min-width: unset; font-size: 11px; padding: 8px 14px; }
+      #legend { bottom: 70px; left: 8px; font-size: 11px; padding: 8px 12px; }
+      #mini-map { display: none !important; }
+      #instructions { bottom: 55px; right: 8px; font-size: 10px; }
+    }
+
+    /* RESPONSIVE: MOBILE */
+    @media (max-width: 480px) {
+      #time-indicator { top: 8px; left: 8px; padding: 8px 10px; font-size: 12px; }
+      #time-slider { width: 80px; }
+      #connection-status { top: 8px; padding: 5px 10px; font-size: 10px; }
+      #sound-toggle { top: 8px; right: 56px; }
+      #agent-panel { top: 64px; right: 8px; left: 8px; padding: 14px; font-size: 12px; }
+      #activity-ticker, #legend, #instructions { display: none; }
+    }
+
+    /* PANEL TOGGLE */
+    .panels-hidden #time-indicator, .panels-hidden #legend,
+    .panels-hidden #instructions, .panels-hidden #sound-toggle,
+    .panels-hidden #activity-ticker { display: none !important; }
+    .panels-hidden #agent-panel { top: 8px; }
   </style>
 </head>
 <body>
+
+  <div id="loading-screen" role="status" aria-label="Loading">
+    <div class="loading-logo"></div>
+    <div class="loading-text">Initializing Office</div>
+    <div class="loading-sub">Setting up agents...</div>
+  </div>
+
   <div id="canvas-container"></div>
   
-  <!-- Connection Status -->
-  <div id="connection-status">
-    <div class="dot"></div>
-    <span id="status-text">Demo Mode — Gateway Offline</span>
+  <div id="connection-status" role="status" aria-live="polite">
+    <div class="dot" id="conn-dot"></div>
+    <span id="status-text">Connecting...</span>
   </div>
   
-  <!-- Time of Day Control -->
   <div id="time-indicator">
     <div class="time-label" id="time-label">☀️ Day - 12:00</div>
-    <input type="range" id="time-slider" min="0" max="24" step="0.5" value="12">
+    <input type="range" id="time-slider" min="0" max="24" step="0.5" value="12" aria-label="Time of day">
   </div>
   
-  <!-- Agent Info Panel -->
-  <div id="agent-panel">
-    <button class="close-btn" onclick="closeAgentPanel()">×</button>
+  <button id="sound-toggle" aria-label="Toggle ambient sound" title="Ambient office hum">
+    🔊 <span id="sound-label">Sound</span>
+  </button>
+  
+  <div id="agent-panel" role="dialog" aria-label="Agent Details">
+    <button class="close-btn" id="close-agent-panel" aria-label="Close panel">×</button>
     <h2><span id="agent-emoji">🤖</span> <span id="agent-name">Agent</span></h2>
     <div class="info-row">
       <span class="info-label">Status</span>
@@ -443,267 +277,122 @@
     </div>
   </div>
   
-  <!-- Activity Ticker -->
-  <div id="activity-ticker">
-    <div id="ticker-content">🌐 OpenClaw Agent Office initialized • Waiting for agent activity...</div>
+  <div id="activity-ticker" aria-live="polite">
+    <span id="ticker-scroll">🌐 OpenClaw Agent Office initialized • Waiting for agent activity... &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
   </div>
   
-  <!-- ============================================================
-       DASHBOARD PANELS — Live Agent Overlays (HTML)
-       ============================================================ -->
-
-  <!-- 1. TOKEN / USAGE PANEL -->
-  <div id="token-panel" class="office-panel collapsed">
-    <div class="panel-header" onclick="togglePanel('token-panel')">
-      <h3>🪙 Token Usage</h3>
-      <button class="panel-toggle">&#9660;</button>
-    </div>
-    <div class="panel-body">
-      <div class="token-summary">
-        <div class="token-stat">
-          <div class="label">Input</div>
-          <div class="value input" id="tk-input">0</div>
-        </div>
-        <div class="token-stat">
-          <div class="label">Output</div>
-          <div class="value output" id="tk-output">0</div>
-        </div>
-        <div class="token-stat">
-          <div class="label">Total</div>
-          <div class="value total" id="tk-total">0</div>
-        </div>
-        <div class="token-stat">
-          <div class="label">Est. Cost</div>
-          <div class="value cost" id="tk-cost">$0.0000</div>
-        </div>
-      </div>
-      <!-- CSS bar chart -->
-      <div class="token-bar-chart">
-        <div class="token-bar-label">
-          <span>0</span><span>Token Distribution</span><span id="tk-quota">100K</span>
-        </div>
-        <div class="token-bar-track">
-          <div class="token-bar-segment input-seg" id="tk-input-bar" style="width:50%"></div>
-          <div class="token-bar-segment output-seg" id="tk-output-bar" style="width:50%"></div>
-        </div>
-      </div>
-      <!-- Model breakdown -->
-      <div class="model-breakdown" id="model-breakdown">
-        <div class="model-row">
-          <span class="model-name">Loading...</span>
-        </div>
-      </div>
-    </div>
+  <div id="mini-map" role="img" aria-label="Office mini-map">
+    <div id="mini-map-label">Map</div>
+    <canvas id="mini-map-canvas" width="160" height="120"></canvas>
   </div>
-
-  <!-- 2. SESSION LIST PANEL -->
-  <div id="session-panel" class="office-panel collapsed">
-    <div class="panel-header" onclick="togglePanel('session-panel')">
-      <h3>💬 Sessions <span id="session-count" style="font-size:11px;color:#888;font-weight:400"> (0)</span></h3>
-      <button class="panel-toggle">&#9660;</button>
-    </div>
-    <div class="panel-body" id="session-list-body">
-      <div class="no-sessions">No active sessions</div>
-    </div>
-  </div>
-
-  <!-- 3. LIVE EVENT FEED -->
-  <div id="event-panel" class="office-panel">
-    <div class="panel-header" onclick="togglePanel('event-panel')">
-      <h3>⚡ Live Events <span id="event-count" style="font-size:11px;color:#888;font-weight:400">(0)</span></h3>
-      <button class="panel-toggle">&#9660;</button>
-    </div>
-    <div class="panel-body" id="event-list-body">
-      <div class="no-events">Waiting for events...</div>
-    </div>
-  </div>
-
-  <!-- 4. SYSTEM HEALTH WIDGET -->
-  <div id="health-widget" class="office-panel">
-    <div class="health-row">
-      <span class="health-label">Gateway</span>
-      <span class="health-value"><div class="health-dot warn" id="health-dot"></div><span id="health-latency">—</span></span>
-    </div>
-    <div class="health-row">
-      <span class="health-label">Sessions</span>
-      <span class="health-value" id="health-sessions">0</span>
-    </div>
-    <div class="health-row">
-      <span class="health-label">Agents Active</span>
-      <span class="health-value" id="health-agents">0 / 6</span>
-    </div>
-    <div class="health-divider"></div>
-    <div class="health-time" id="health-time">—</div>
-    <div class="health-uptime" id="health-uptime">Uptime: —</div>
-  </div>
-
-  <!-- 5. MINI AGENT MAP -->
-  <div id="mini-map" class="office-panel collapsed">
-    <div class="panel-header" onclick="togglePanel('mini-map')">
-      <h3>🗺️ Office Map</h3>
-      <button class="panel-toggle">&#9660;</button>
-    </div>
-    <div class="panel-body" style="padding:8px 12px;">
-      <div class="map-area" id="map-area">
-        <!-- CSS-drawn walls -->
-        <div class="map-wall back"></div>
-        <div class="map-wall left"></div>
-        <div class="map-wall right"></div>
-        <!-- CSS desk positions (6 desks in 2 rows) -->
-        <div class="map-desk" style="top:22px;left:20%"></div>
-        <div class="map-desk" style="top:22px;left:38%"></div>
-        <div class="map-desk" style="top:22px;left:56%"></div>
-        <div class="map-desk" style="top:52px;left:20%"></div>
-        <div class="map-desk" style="top:52px;left:38%"></div>
-        <div class="map-desk" style="top:52px;left:56%"></div>
-        <!-- Section labels -->
-        <div class="map-label" style="top:4px;left:8%;transform:translateX(-50%)">WORK</div>
-        <div class="map-label" style="top:4px;right:8%;transform:translateX(50%)">LOUNGE</div>
-        <div class="map-label" style="bottom:4px;left:50%;transform:translateX(-50%)">MEETING</div>
-        <!-- Agent dots (injected by JS) -->
-        <div id="map-dots"></div>
-      </div>
-    </div>
-  </div>
-
-  <!-- LEGEND -->
+  
   <div id="legend">
     <h4>Agent Status</h4>
-    <div class="legend-item"><div class="legend-color" style="background:#00ff88"></div> Working</div>
+    <div class="legend-item"><div class="legend-color" style="background:#00ff88"></div> Active</div>
     <div class="legend-item"><div class="legend-color" style="background:#ffaa00"></div> Idle</div>
     <div class="legend-item"><div class="legend-color" style="background:#ff4444"></div> Error</div>
     <div class="legend-item"><div class="legend-color" style="background:#4488ff"></div> Thinking</div>
-    <div class="legend-item"><div class="legend-color" style="background:#8888ff"></div> Sleeping</div>
-    <div class="legend-item"><div class="legend-color" style="background:#44ffcc"></div> Particles</div>
-    <h4 style="margin-top:10px">Zones</h4>
-    <div class="legend-item"><div class="legend-color" style="background:#5d4037"></div> Library</div>
-    <div class="legend-item"><div class="legend-color" style="background:#455A64"></div> Server</div>
-    <div class="legend-item"><div class="legend-color" style="background:#6d4c41"></div> Break Room</div>
-    <div class="legend-item"><div class="legend-color" style="background:#4e342e"></div> Lounge</div>
   </div>
-
-  <!-- Instructions -->
+  
   <div id="instructions">
-    🖱️ Drag to orbit • Scroll to zoom • Click agent to inspect • Agents auto-cycle behaviors
+    🖱️ Drag to orbit • Scroll to zoom • Click agent<br>
+    <kbd>1</kbd>-<kbd>6</kbd> agent &nbsp; <kbd>M</kbd> map &nbsp; <kbd>H</kbd> panels &nbsp; <kbd>D</kbd> day/night &nbsp; <kbd>?</kbd> help
   </div>
 
-  <!-- Three.js -->
+  <div id="shortcuts-hint" role="dialog" aria-label="Keyboard shortcuts">
+    <button class="close-shortcuts" id="close-shortcuts" aria-label="Close">×</button>
+    <h3>⌨️ Keyboard Shortcuts</h3>
+    <div class="shortcut-row"><span>Select Agent 1–6</span><kbd>1</kbd>–<kbd>6</kbd></div>
+    <div class="shortcut-row"><span>Toggle Mini-Map</span><kbd>M</kbd></div>
+    <div class="shortcut-row"><span>Toggle Panels</span><kbd>H</kbd></div>
+    <div class="shortcut-row"><span>Day / Night</span><kbd>D</kbd></div>
+    <div class="shortcut-row"><span>Close Panel / Modal</span><kbd>Esc</kbd></div>
+    <div class="shortcut-row"><span>Show This Help</span><kbd>?</kbd></div>
+  </div>
+
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/three@0.134.0/examples/js/controls/OrbitControls.js"></script>
   
   <script>
     // ============================================================
-    // CONFIGURATION
+    // CONFIG
     // ============================================================
     const CONFIG = {
       gatewayUrl: 'http://localhost:18789',
       dashboardApiUrl: 'http://localhost:3001/api/gateway',
+      dashboardSseUrl: 'http://localhost:3001/api/gateway/events',
       pollInterval: 3000,
       agentCount: 6,
-      officeWidth: 48,   // expanded for new zones (cols 0-23 map to -18..6)
-      officeDepth: 40,   // expanded for new zones (rows 0-19 map to -14..14)
-      deskSpacing: 8,
+      officeWidth: 40,
+      officeDepth: 30,
     };
 
     // ============================================================
-    // GLOBAL STATE
+    // STATE
     // ============================================================
     let scene, camera, renderer, controls;
     let agents = [];
-    let officeObjects = { desks: [], chairs: [], monitors: [], plants: [], mugs: [], lamps: [], particles: [] };
-    let ambientLights = { main: null, fill: null, accent: null };
-    let timeOfDay = 12; // 0-24, 12 = noon
-    let activityFeed = [];
+    let officeObjects = { desks:[], chairs:[], monitors:[], plants:[], mugs:[], lamps:[] };
+    let ambientLights = { main:null, fill:null, accent:null };
+    let timeOfDay = 12;
     let selectedAgent = null;
     let raycaster, mouse;
-    let dustParticles;
+    let dustParticles = null;
+    let dustVelocities = [];
+    let eventSource = null;
+    let sseConnected = false;
+    let cameraIntroDone = false;
+    let minimapCtx = null;
+    let minimapVisible = false;
+    let panelsVisible = true;
+    let shortcutsVisible = false;
+    let audioCtx = null, ambientGain = null, soundEnabled = false;
+    let tickerMessages = [];
+    let isHidden = false;
+    let lastFrameTime = 0;
+    let _dustPosArray = null;
 
-    // ── Behavior & Zones ──────────────────────────────────────────────────────
-    // Zone world-positions derived from layout.ts col→X, row→Z mapping
-    // X = col - 9, Z = 5 - row
-    const ZONE_CENTERS = {
-      desk_0:      { x: -5,  z:  2  },
-      desk_1:      { x: -5,  z:  -1 },
-      desk_2:      { x: -5,  z:  -4 },
-      desk_3:      { x: -1,  z:  2  },
-      desk_4:      { x: -1,  z:  -1 },
-      desk_5:      { x: -1,  z:  -4 },
-      boss_office: { x:  5,  z:  2  },
-      break_room:  { x: 11,  z:  2  },
-      meeting_room:{ x:  5,  z:  -2 },
-      whiteboard:  { x:  1,  z:  -7 },
-      library:     { x:  1,  z: -10 },
-      lounge:      { x: 11,  z:  -9 },
-      server_room: { x: 11,  z:  -4 },
-    };
+    const STATUS_COLORS = { active:0x00ff88, idle:0xffaa00, error:0xff4444, thinking:0x4488ff };
 
-    // Agent behavior → destination zone + animation
-    const BEHAVIOR_MAP = {
-      working:      { zone: 'desk_0', anim: 'working',      bubble: '💻 Working...',  particle: 'code',    priority: 3 },
-      thinking:      { zone: 'desk_0', anim: 'thinking',      bubble: '🤔 Thinking...', particle: 'question', priority: 2 },
-      researching:   { zone: 'library', anim: 'researching',  bubble: '📚 Researching', particle: 'sparkle',  priority: 2 },
-      meeting:       { zone: 'meeting_room', anim: 'meeting', bubble: '🤝 In meeting', particle: null,      priority: 3 },
-      deploying:     { zone: 'server_room', anim: 'deploying', bubble: '🚀 Deploying!', particle: 'lightning', priority: 4 },
-      debugging:     { zone: 'desk_0', anim: 'debugging',    bubble: '🐛 Debugging...', particle: 'error',   priority: 3 },
-      receiving_task:{ zone: 'boss_office', anim: 'task',     bubble: '📋 New task!',  particle: 'sparkle',  priority: 4 },
-      reporting:     { zone: 'boss_office', anim: 'reporting', bubble: '✅ Done!',     particle: 'check',   priority: 3 },
-      idle:          { zone: 'lounge',  anim: 'idle',         bubble: '☕ Coffee time', particle: 'coffee_steam', priority: 0 },
-      coffee:        { zone: 'break_room', anim: 'coffee',    bubble: '☕ Brewing...',  particle: 'coffee_steam', priority: 1 },
-      snacking:      { zone: 'break_room', anim: 'snacking',  bubble: '🍪 Snack break', particle: null,     priority: 1 },
-      sleeping:      { zone: 'lounge',  anim: 'sleeping',     bubble: '😴',             particle: 'zzz',    priority: 0 },
-      napping:       { zone: 'desk_0', anim: 'sleeping',       bubble: '😴',             particle: 'zzz',    priority: 0 },
-      panicking:     { zone: 'desk_0', anim: 'panicking',     bubble: '😱 Error!',     particle: 'error',   priority: 5 },
-      dead:          { zone: 'desk_0', anim: 'dead',          bubble: '💀 Crashed',    particle: 'smoke',   priority: 0 },
-      overloaded:    { zone: 'desk_0', anim: 'overloaded',     bubble: '🔥 Overloaded!', particle: 'smoke',   priority: 4 },
-      reviving:       { zone: 'desk_0', anim: 'reviving',      bubble: '🔄 Restarting...', particle: 'lightning', priority: 3 },
-    };
+    const DESK_POSITIONS = [
+      {x:-12,z:-8},{x:-12,z:0},{x:-12,z:8},
+      {x:0,z:-8},{x:0,z:0},{x:0,z:8},
+    ];
 
-    // Per-agent behavior runtime state
-    const agentBehaviors = [];   // { behavior, zone, walkStart, walkTarget, walkProgress, screenPos }
-    let agentBubbles    = [];   // DOM elements for speech bubbles
-    let agentParticles  = [];   // Three.js particle meshes
-
-    // Agent status colors
-    const STATUS_COLORS = {
-      active: 0x00ff88,
-      idle: 0xffaa00,
-      error: 0xff4444,
-      thinking: 0x4488ff,
-    };
+    const isLowEnd = (navigator.hardwareConcurrency || 4) <= 2;
 
     // ============================================================
-    // INITIALIZATION
+    // VISIBILITY THROTTLING
+    // ============================================================
+    function setupVisibilityHandler() {
+      document.addEventListener('visibilitychange', () => { isHidden = document.hidden; });
+    }
+
+    function getMinFrameTime() { return isHidden ? 1000/30 : 1000/60; }
+
+    // ============================================================
+    // INIT
     // ============================================================
     function init() {
-      // Scene
       scene = new THREE.Scene();
       scene.background = new THREE.Color(0x1e2433);
 
-      // Camera (isometric perspective)
       const aspect = window.innerWidth / window.innerHeight;
-      const frustumSize = 50;
+      const fSize = 50;
       camera = new THREE.OrthographicCamera(
-        frustumSize * aspect / -2,
-        frustumSize * aspect / 2,
-        frustumSize / 2,
-        frustumSize / -2,
-        0.1,
-        1000
+        fSize*aspect/-2, fSize*aspect/2, fSize/2, fSize/-2, 0.1, 1000
       );
-      
-      // Isometric angle
-      camera.position.set(30, 30, 30);
+      // Start far for intro camera sweep
+      camera.position.set(80, 80, 80);
       camera.lookAt(0, 0, 0);
 
-      // Renderer
-      renderer = new THREE.WebGLRenderer({ antialias: true });
+      renderer = new THREE.WebGLRenderer({ antialias: !isLowEnd });
       renderer.setSize(window.innerWidth, window.innerHeight);
-      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, isLowEnd ? 1.5 : 2));
       renderer.shadowMap.enabled = true;
       renderer.shadowMap.type = THREE.PCFSoftShadowMap;
       document.getElementById('canvas-container').appendChild(renderer.domElement);
 
-      // Orbit Controls
       controls = new THREE.OrbitControls(camera, renderer.domElement);
       controls.enableDamping = true;
       controls.dampingFactor = 0.05;
@@ -711,35 +400,291 @@
       controls.maxZoom = 3;
       controls.maxPolarAngle = Math.PI / 2.5;
       controls.minPolarAngle = Math.PI / 6;
-      controls.enableRotate = true;
-      controls.enablePan = true;
 
-      // Raycaster for click detection
       raycaster = new THREE.Raycaster();
       mouse = new THREE.Vector2();
 
-      // Build the office
       createOffice();
       createLights();
       createDustParticles();
       createAgents();
-      initAgentBehaviors();
+      setupMiniMap();
 
-      // Start demo behavior cycling (every 5-8 seconds)
-      setTimeout(() => demoBehaviorCycle(), 2000);
-      setInterval(() => demoBehaviorCycle(), 5000 + Math.random() * 3000);
-
-      // Event listeners
       window.addEventListener('resize', onWindowResize);
       renderer.domElement.addEventListener('click', onMouseClick);
       document.getElementById('time-slider').addEventListener('input', onTimeChange);
+      document.getElementById('close-agent-panel').addEventListener('click', closeAgentPanel);
+      document.getElementById('sound-toggle').addEventListener('click', toggleSound);
+      document.getElementById('close-shortcuts').addEventListener('click', closeShortcutsHint);
 
-      // Start animation loop
-      animate();
+      setupKeyboardShortcuts();
+      setupVisibilityHandler();
 
-      // Start gateway polling
-      pollGateway();
-      setInterval(pollGateway, CONFIG.pollInterval);
+      // Hide loading screen after a moment
+      setTimeout(() => {
+        const ls = document.getElementById('loading-screen');
+        if (ls) { ls.classList.add('hidden'); setTimeout(() => ls.remove(), 900); }
+      }, 800);
+
+      // Start loop & connections
+      requestAnimationFrame(animate);
+      setTimeout(() => {
+        connectSSE();
+        pollGateway();
+        setInterval(pollGateway, CONFIG.pollInterval);
+      }, 600);
+    }
+
+    // ============================================================
+    // SSE
+    // ============================================================
+    function connectSSE() {
+      try {
+        eventSource = new EventSource(CONFIG.dashboardSseUrl);
+      } catch(e) { console.warn('SSE unavailable:', e); return; }
+
+      eventSource.addEventListener('open', () => {
+        sseConnected = true;
+        updateConnectionStatus(true);
+        flashConnectionDot();
+      });
+
+      eventSource.addEventListener('state', (e) => {
+        try {
+          const data = JSON.parse(e.data);
+          handleSSEState(data);
+        } catch(err) { console.warn('SSE parse error:', err); }
+      });
+
+      eventSource.onerror = () => {
+        sseConnected = false;
+        updateConnectionStatus(false);
+        eventSource.close();
+        setTimeout(connectSSE, 5000);
+      };
+    }
+
+    function handleSSEState(data) {
+      let idx = -1;
+      if (data.sessionKey) {
+        const parts = data.sessionKey.split(':');
+        const last = parts[parts.length - 1];
+        if (!isNaN(last) && last !== 'main') idx = parseInt(last) % CONFIG.agentCount;
+        else if (parts.includes('subagent')) {
+          idx = data.sessionKey.split('').reduce((a,c) => a + c.charCodeAt(0), 0) % CONFIG.agentCount;
+        } else idx = 0;
+      }
+      if (idx >= 0 && idx < agents.length) {
+        const agent = agents[idx];
+        const status = mapBehaviorToStatus(data.behavior, data.agentStatus);
+        updateAgentStatus(agent, status, data);
+      }
+      if (data.statusSummary) updateTickerSingle(`${data.agentName||'Agent'}: ${data.statusSummary}`);
+    }
+
+    function mapBehaviorToStatus(behavior, agentStatus) {
+      if (!behavior) return agentStatus === 'active' ? 'active' : 'idle';
+      const working = ['working','deploying','debugging','researching','reporting'];
+      const thinking = ['thinking','receiving_task'];
+      if (working.includes(behavior)) return 'active';
+      if (thinking.includes(behavior)) return 'thinking';
+      if (behavior === 'dead' || behavior === 'panicking') return 'error';
+      return 'idle';
+    }
+
+    function flashConnectionDot() {
+      const dot = document.getElementById('conn-dot');
+      if (!dot) return;
+      dot.classList.remove('flash');
+      void dot.offsetWidth;
+      dot.classList.add('flash');
+    }
+
+    // ============================================================
+    // KEYBOARD SHORTCUTS
+    // ============================================================
+    function setupKeyboardShortcuts() {
+      document.addEventListener('keydown', (e) => {
+        if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+        switch(e.key) {
+          case '1':case '2':case '3':case '4':case '5':case '6':
+            flyToAgent(parseInt(e.key) - 1); break;
+          case 'm':case 'M': toggleMiniMap(); break;
+          case 'h':case 'H': togglePanels(); break;
+          case 'd':case 'D': toggleDayNight(); break;
+          case 'Escape': closeAllPanels(); break;
+          case '?': toggleShortcutsHint(); break;
+        }
+      });
+    }
+
+    function flyToAgent(idx) {
+      if (idx < 0 || idx >= agents.length) return;
+      const pos = DESK_POSITIONS[idx]; if (!pos) return;
+      const dist = 25;
+      const sx = camera.position.x, sy = camera.position.y, sz = camera.position.z;
+      const ex = pos.x + dist*0.6, ey = dist*0.7, ez = pos.z + dist*0.6;
+      const start = performance.now(), dur = 1200;
+      function tween(now) {
+        const t = Math.min((now - start)/dur, 1);
+        const ease = t < 0.5 ? 2*t*t : -1+(4-2*t)*t;
+        camera.position.x = sx+(ex-sx)*ease;
+        camera.position.y = sy+(ey-sy)*ease;
+        camera.position.z = sz+(ez-sz)*ease;
+        camera.lookAt(pos.x, 2, pos.z);
+        controls.update();
+        if (t < 1) requestAnimationFrame(tween);
+      }
+      requestAnimationFrame(tween);
+
+      // Brief ring highlight
+      const agent = agents[idx];
+      if (agent && agent.userData.statusRing) {
+        const ring = agent.userData.statusRing;
+        const orig = ring.material.emissiveIntensity;
+        ring.material.emissiveIntensity = 2.5;
+        setTimeout(() => { ring.material.emissiveIntensity = orig; }, 700);
+      }
+    }
+
+    function toggleMiniMap() {
+      minimapVisible = !minimapVisible;
+      const el = document.getElementById('mini-map');
+      if (el) el.classList.toggle('visible', minimapVisible);
+    }
+
+    function togglePanels() {
+      panelsVisible = !panelsVisible;
+      document.body.classList.toggle('panels-hidden', !panelsVisible);
+    }
+
+    function toggleDayNight() {
+      timeOfDay = timeOfDay < 12 ? 18 : 6;
+      document.getElementById('time-slider').value = timeOfDay;
+      updateLighting();
+    }
+
+    function closeAllPanels() {
+      closeAgentPanel();
+      closeShortcutsHint();
+    }
+
+    function toggleShortcutsHint() {
+      shortcutsVisible = !shortcutsVisible;
+      const el = document.getElementById('shortcuts-hint');
+      if (el) el.classList.toggle('visible', shortcutsVisible);
+    }
+
+    function closeShortcutsHint() {
+      shortcutsVisible = false;
+      const el = document.getElementById('shortcuts-hint');
+      if (el) el.classList.remove('visible');
+    }
+
+    // ============================================================
+    // MINI-MAP
+    // ============================================================
+    function setupMiniMap() {
+      const canvas = document.getElementById('mini-map-canvas');
+      if (!canvas) return;
+      minimapCtx = canvas.getContext('2d');
+    }
+
+    function updateMiniMap() {
+      if (!minimapCtx || !minimapVisible) return;
+      const ctx = minimapCtx;
+      const w = 160, h = 120;
+      ctx.clearRect(0, 0, w, h);
+      ctx.fillStyle = 'rgba(15,15,25,0.9)';
+      ctx.fillRect(0, 0, w, h);
+
+      const sx = w / CONFIG.officeWidth;
+      const sz = h / CONFIG.officeDepth;
+      const toX = (ox) => (ox + CONFIG.officeWidth/2) * sx;
+      const toY = (oz) => (oz + CONFIG.officeDepth/2) * sz;
+
+      // Floor outline
+      ctx.strokeStyle = 'rgba(100,150,255,0.3)';
+      ctx.lineWidth = 1;
+      ctx.strokeRect(toX(-CONFIG.officeWidth/2), toY(-CONFIG.officeDepth/2), CONFIG.officeWidth*sx, CONFIG.officeDepth*sz);
+
+      // Desks
+      ctx.fillStyle = 'rgba(80,80,100,0.6)';
+      DESK_POSITIONS.forEach(p => {
+        ctx.fillRect(toX(p.x)-3, toY(p.z)-2, 6, 4);
+      });
+
+      // Agents
+      agents.forEach((agent, i) => {
+        const color = STATUS_COLORS[agent.userData.status] || STATUS_COLORS.idle;
+        ctx.fillStyle = '#' + color.toString(16).padStart(6,'0');
+        ctx.beginPath();
+        ctx.arc(toX(agent.position.x), toY(agent.position.z), 4, 0, Math.PI*2);
+        ctx.fill();
+      });
+
+      // Camera indicator (dot on minimap center)
+      const cx = toX(camera.position.x * 0.15);
+      const cy = toY(camera.position.z * 0.15);
+      ctx.fillStyle = 'rgba(255,255,255,0.3)';
+      ctx.beginPath();
+      ctx.arc(cx, cy, 3, 0, Math.PI*2);
+      ctx.fill();
+    }
+
+    // ============================================================
+    // AMBIENT SOUND (Web Audio API)
+    // ============================================================
+    function toggleSound() {
+      if (!soundEnabled) {
+        // Init audio context
+        if (!audioCtx) {
+          audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+
+        // Brown noise for office hum
+        const bufferSize = audioCtx.sampleRate * 2;
+        const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+        const data = buffer.getChannelData(0);
+        let lastOut = 0;
+        for (let i = 0; i < bufferSize; i++) {
+          const white = Math.random() * 2 - 1;
+          data[i] = (lastOut + (0.02 * white)) / 1.02;
+          lastOut = data[i];
+          data[i] *= 3.5;
+        }
+
+        const source = audioCtx.createBufferSource();
+        source.buffer = buffer;
+        source.loop = true;
+
+        ambientGain = audioCtx.createGain();
+        ambientGain.gain.setValueAtTime(0, audioCtx.currentTime);
+        ambientGain.gain.linearRampToValueAtTime(0.06, audioCtx.currentTime + 1);
+
+        const filter = audioCtx.createBiquadFilter();
+        filter.type = 'lowpass';
+        filter.frequency.value = 400;
+
+        source.connect(filter);
+        filter.connect(ambientGain);
+        ambientGain.connect(audioCtx.destination);
+        source.start();
+        soundEnabled = true;
+      } else {
+        // Fade out and stop
+        if (ambientGain && audioCtx) {
+          ambientGain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.5);
+          setTimeout(() => { if (audioCtx) audioCtx.suspend(); }, 600);
+        }
+        soundEnabled = false;
+      }
+
+      const btn = document.getElementById('sound-toggle');
+      const label = document.getElementById('sound-label');
+      if (btn) btn.classList.toggle('active', soundEnabled);
+      if (label) label.textContent = soundEnabled ? 'On' : 'Sound';
     }
 
     // ============================================================
@@ -748,75 +693,35 @@
     function createOffice() {
       // Floor
       const floorGeom = new THREE.BoxGeometry(CONFIG.officeWidth, 0.5, CONFIG.officeDepth);
-      const floorMat = new THREE.MeshStandardMaterial({ 
-        color: 0x4a5a6a,
-        roughness: 0.8,
-        metalness: 0.1
-      });
+      const floorMat = new THREE.MeshStandardMaterial({ color:0x4a5a6a, roughness:0.8, metalness:0.1 });
       const floor = new THREE.Mesh(floorGeom, floorMat);
-      floor.position.y = -0.25;
-      floor.receiveShadow = true;
+      floor.position.y = -0.25; floor.receiveShadow = true;
       scene.add(floor);
-
-      // Floor tiles pattern
       createFloorTiles();
-
-      // Walls
       createWalls();
-
-      // Windows
       createWindows();
 
-      // Create desks with equipment
       const deskPositions = [
-        { x: -12, z: -8 },
-        { x: -12, z: 0 },
-        { x: -12, z: 8 },
-        { x: 0, z: -8 },
-        { x: 0, z: 0 },
-        { x: 0, z: 8 },
+        {x:-12,z:-8},{x:-12,z:0},{x:-12,z:8},
+        {x:0,z:-8},{x:0,z:0},{x:0,z:8},
       ];
-
-      deskPositions.forEach((pos, i) => {
-        createDesk(pos.x, pos.z, i);
-      });
-
-      // Boss desk area
+      deskPositions.forEach((pos, i) => createDesk(pos.x, pos.z, i));
       createBossDesk(12, -5);
-
-      // Meeting table (round table in meeting room zone)
-      createMeetingTable(5, -2);
-
-      // Lounge area (back-right)
-      createLounge(11, -9);
-
-      // Server rack
-      createServerRack(11, -4);
-
-      // New zones
-      createLibrary(1, -10);       // bookshelves + reading chair
-      createBreakRoom(11, 2);       // counter + coffee machine + water cooler
+      createMeetingTable(12, 5);
+      createLounge(12, 12);
+      createServerRack(-10, 12);
     }
 
     function createFloorTiles() {
       const tileSize = 2;
       const tilesX = Math.floor(CONFIG.officeWidth / tileSize);
       const tilesZ = Math.floor(CONFIG.officeDepth / tileSize);
-      
       for (let x = 0; x < tilesX; x++) {
         for (let z = 0; z < tilesZ; z++) {
           const isEven = (x + z) % 2 === 0;
-          const tileGeom = new THREE.BoxGeometry(tileSize - 0.1, 0.05, tileSize - 0.1);
-          const tileMat = new THREE.MeshStandardMaterial({
-            color: isEven ? 0x3a3a45 : 0x35354a,
-            roughness: 0.9,
-          });
-          const tile = new THREE.Mesh(tileGeom, tileMat);
-          tile.position.set(
-            -CONFIG.officeWidth/2 + tileSize/2 + x * tileSize,
-            0.03,
-            -CONFIG.officeDepth/2 + tileSize/2 + z * tileSize
-          );
+          const tileMat = new THREE.MeshStandardMaterial({ color: isEven ? 0x3a3a45 : 0x35354a, roughness:0.9 });
+          const tile = new THREE.Mesh(new THREE.BoxGeometry(tileSize-0.1, 0.05, tileSize-0.1), tileMat);
+          tile.position.set(-CONFIG.officeWidth/2+tileSize/2+x*tileSize, 0.03, -CONFIG.officeDepth/2+tileSize/2+z*tileSize);
           tile.receiveShadow = true;
           scene.add(tile);
         }
@@ -824,1020 +729,219 @@
     }
 
     function createWalls() {
-      const wallHeight = 8;
-      const wallMat = new THREE.MeshStandardMaterial({ 
-        color: 0x3a4555,
-        roughness: 0.9,
-      });
-
-      // Back wall
-      const backWall = new THREE.Mesh(
-        new THREE.BoxGeometry(CONFIG.officeWidth, wallHeight, 0.5),
-        wallMat
-      );
-      backWall.position.set(0, wallHeight/2, -CONFIG.officeDepth/2);
-      backWall.receiveShadow = true;
-      scene.add(backWall);
-
-      // Left wall
-      const leftWall = new THREE.Mesh(
-        new THREE.BoxGeometry(0.5, wallHeight, CONFIG.officeDepth),
-        wallMat
-      );
-      leftWall.position.set(-CONFIG.officeWidth/2, wallHeight/2, 0);
-      leftWall.receiveShadow = true;
-      scene.add(leftWall);
-
-      // Right wall (partial for depth)
-      const rightWall = new THREE.Mesh(
-        new THREE.BoxGeometry(0.5, wallHeight, CONFIG.officeDepth),
-        wallMat
-      );
-      rightWall.position.set(CONFIG.officeWidth/2, wallHeight/2, 0);
-      rightWall.receiveShadow = true;
-      scene.add(rightWall);
+      const wallMat = new THREE.MeshStandardMaterial({ color:0x3a4555, roughness:0.9 });
+      const h = 8;
+      const bW = new THREE.Mesh(new THREE.BoxGeometry(CONFIG.officeWidth, h, 0.5), wallMat);
+      bW.position.set(0, h/2, -CONFIG.officeDepth/2); bW.receiveShadow = true;
+      scene.add(bW);
+      const lW = new THREE.Mesh(new THREE.BoxGeometry(0.5, h, CONFIG.officeDepth), wallMat);
+      lW.position.set(-CONFIG.officeWidth/2, h/2, 0); lW.receiveShadow = true;
+      scene.add(lW);
+      const rW = new THREE.Mesh(new THREE.BoxGeometry(0.5, h, CONFIG.officeDepth), wallMat);
+      rW.position.set(CONFIG.officeWidth/2, h/2, 0); rW.receiveShadow = true;
+      scene.add(rW);
     }
 
     function createWindows() {
-      const windowMat = new THREE.MeshStandardMaterial({
-        color: 0x4488cc,
-        emissive: 0x2244aa,
-        emissiveIntensity: 0.3,
-        transparent: true,
-        opacity: 0.6,
-      });
-
-      // Windows on back wall
+      const winMat = new THREE.MeshStandardMaterial({ color:0x4488cc, emissive:0x2244aa, emissiveIntensity:0.3, transparent:true, opacity:0.6 });
       for (let i = 0; i < 4; i++) {
-        const windowFrame = new THREE.Group();
-        
-        // Glass
-        const glass = new THREE.Mesh(
-          new THREE.BoxGeometry(4, 4, 0.1),
-          windowMat
-        );
-        windowFrame.add(glass);
-
-        // Frame
-        const frameMat = new THREE.MeshStandardMaterial({ color: 0x555555 });
-        const frameTop = new THREE.Mesh(new THREE.BoxGeometry(4.4, 0.3, 0.2), frameMat);
-        frameTop.position.y = 2.15;
-        windowFrame.add(frameTop);
-        
-        const frameBottom = new THREE.Mesh(new THREE.BoxGeometry(4.4, 0.3, 0.2), frameMat);
-        frameBottom.position.y = -2.15;
-        windowFrame.add(frameBottom);
-
-        windowFrame.position.set(-12 + i * 8, 5, -CONFIG.officeDepth/2 + 0.3);
-        scene.add(windowFrame);
+        const frame = new THREE.Group();
+        frame.add(new THREE.Mesh(new THREE.BoxGeometry(4, 4, 0.1), winMat));
+        const fMat = new THREE.MeshStandardMaterial({ color:0x555555 });
+        const ft = new THREE.Mesh(new THREE.BoxGeometry(4.4, 0.3, 0.2), fMat); ft.position.y = 2.15; frame.add(ft);
+        const fb = new THREE.Mesh(new THREE.BoxGeometry(4.4, 0.3, 0.2), fMat); fb.position.y = -2.15; frame.add(fb);
+        frame.position.set(-12 + i*8, 5, -CONFIG.officeDepth/2 + 0.3);
+        scene.add(frame);
       }
     }
 
     function createDesk(x, z, index) {
       const deskGroup = new THREE.Group();
       deskGroup.position.set(x, 0, z);
-
-      // Desk surface
-      const deskGeom = new THREE.BoxGeometry(4, 0.2, 2.5);
-      const deskMat = new THREE.MeshStandardMaterial({ color: 0x4a3728, roughness: 0.7 });
-      const desk = new THREE.Mesh(deskGeom, deskMat);
-      desk.position.y = 1.5;
-      desk.castShadow = true;
-      desk.receiveShadow = true;
-      deskGroup.add(desk);
-
-      // Desk legs
-      const legGeom = new THREE.BoxGeometry(0.2, 1.5, 0.2);
-      const legMat = new THREE.MeshStandardMaterial({ color: 0x333333 });
-      const legPositions = [
-        [-1.8, 0.75, -1], [1.8, 0.75, -1],
-        [-1.8, 0.75, 1], [1.8, 0.75, 1]
-      ];
-      legPositions.forEach(pos => {
-        const leg = new THREE.Mesh(legGeom, legMat);
-        leg.position.set(...pos);
-        leg.castShadow = true;
-        deskGroup.add(leg);
+      const deskMat = new THREE.MeshStandardMaterial({ color:0x4a3728, roughness:0.7 });
+      const surf = new THREE.Mesh(new THREE.BoxGeometry(4, 0.2, 2.5), deskMat);
+      surf.position.y = 1.5; surf.castShadow = true; surf.receiveShadow = true;
+      deskGroup.add(surf);
+      const legMat = new THREE.MeshStandardMaterial({ color:0x333333 });
+      [[-1.8,0.75,-1],[1.8,0.75,-1],[-1.8,0.75,1],[1.8,0.75,1]].forEach(p => {
+        const leg = new THREE.Mesh(new THREE.BoxGeometry(0.2,1.5,0.2), legMat);
+        leg.position.set(...p); leg.castShadow = true; deskGroup.add(leg);
       });
-
-      // Monitor
       const monitor = createMonitor();
-      monitor.position.set(0, 2.3, -0.5);
-      deskGroup.add(monitor);
+      monitor.position.set(0, 2.3, -0.5); deskGroup.add(monitor);
       officeObjects.monitors.push(monitor);
-
-      // Keyboard
-      const keyboard = createKeyboard();
-      keyboard.position.set(0, 1.65, 0.5);
-      deskGroup.add(keyboard);
-
-      // Mouse
-      const mouse = createMouse();
-      mouse.position.set(1, 1.65, 0.5);
-      deskGroup.add(mouse);
-
-      // Coffee mug
+      const kb = new THREE.Mesh(new THREE.BoxGeometry(1.2,0.1,0.4), new THREE.MeshStandardMaterial({color:0x2a2a2a}));
+      kb.position.set(0,1.65,0.5); kb.castShadow = true; deskGroup.add(kb);
+      const m = new THREE.Mesh(new THREE.BoxGeometry(0.2,0.1,0.3), new THREE.MeshStandardMaterial({color:0x2a2a2a}));
+      m.position.set(1,1.65,0.5); m.castShadow = true; deskGroup.add(m);
       const mug = createCoffeeMug();
-      mug.position.set(1.5, 1.75, -0.8);
-      deskGroup.add(mug);
-      officeObjects.mugs.push(mug);
-
-      // Desk lamp
+      mug.position.set(1.5,1.75,-0.8); deskGroup.add(mug); officeObjects.mugs.push(mug);
       const lamp = createDeskLamp();
-      lamp.position.set(-1.5, 1.6, -0.5);
-      deskGroup.add(lamp);
-      officeObjects.lamps.push(lamp);
-
-      // Plant
+      lamp.position.set(-1.5,1.6,-0.5); deskGroup.add(lamp); officeObjects.lamps.push(lamp);
       if (index % 2 === 0) {
         const plant = createPlant();
-        plant.position.set(-1.5, 1.6, 0.8);
-        deskGroup.add(plant);
-        officeObjects.plants.push(plant);
+        plant.position.set(-1.5,1.6,0.8); deskGroup.add(plant); officeObjects.plants.push(plant);
       }
-
-      scene.add(deskGroup);
-      officeObjects.desks.push(deskGroup);
-
-      // Chair
+      scene.add(deskGroup); officeObjects.desks.push(deskGroup);
       const chair = createChair();
-      chair.position.set(x + 0, 0, z + 2);
-      scene.add(chair);
-      officeObjects.chairs.push(chair);
+      chair.position.set(x, 0, z+2); scene.add(chair); officeObjects.chairs.push(chair);
     }
 
     function createMonitor() {
-      const monitorGroup = new THREE.Group();
-
-      // Screen
-      const screenGeom = new THREE.BoxGeometry(2, 1.2, 0.1);
-      const screenMat = new THREE.MeshStandardMaterial({
-        color: 0x111122,
-        emissive: 0x223344,
-        emissiveIntensity: 0.8,
-      });
-      const screen = new THREE.Mesh(screenGeom, screenMat);
-      screen.position.y = 0.5;
-      monitorGroup.add(screen);
-
-      // Screen content (glowing area)
-      const contentGeom = new THREE.BoxGeometry(1.8, 1, 0.05);
-      const contentMat = new THREE.MeshStandardMaterial({
-        color: 0x334455,
-        emissive: 0x4466aa,
-        emissiveIntensity: 1.0,
-      });
-      const content = new THREE.Mesh(contentGeom, contentMat);
-      content.position.set(0, 0.5, 0.03);
-      monitorGroup.add(content);
-
-      // Stand
-      const standGeom = new THREE.BoxGeometry(0.3, 0.4, 0.3);
-      const standMat = new THREE.MeshStandardMaterial({ color: 0x222222 });
-      const stand = new THREE.Mesh(standGeom, standMat);
-      stand.position.y = -0.4;
-      monitorGroup.add(stand);
-
-      // Base
-      const baseGeom = new THREE.BoxGeometry(0.8, 0.1, 0.5);
-      const base = new THREE.Mesh(baseGeom, standMat);
-      base.position.y = -0.65;
-      monitorGroup.add(base);
-
-      monitorGroup.userData.isMonitor = true;
-      return monitorGroup;
-    }
-
-    function createKeyboard() {
-      const keyGeom = new THREE.BoxGeometry(1.2, 0.1, 0.4);
-      const keyMat = new THREE.MeshStandardMaterial({ color: 0x2a2a2a });
-      const keyboard = new THREE.Mesh(keyGeom, keyMat);
-      keyboard.castShadow = true;
-      return keyboard;
-    }
-
-    function createMouse() {
-      const mouseGeom = new THREE.BoxGeometry(0.2, 0.1, 0.3);
-      const mouseMat = new THREE.MeshStandardMaterial({ color: 0x2a2a2a });
-      const mouse = new THREE.Mesh(mouseGeom, mouseMat);
-      mouse.castShadow = true;
-      return mouse;
+      const g = new THREE.Group();
+      const screenMat = new THREE.MeshStandardMaterial({ color:0x111122, emissive:0x223344, emissiveIntensity:0.8 });
+      const screen = new THREE.Mesh(new THREE.BoxGeometry(2,1.2,0.1), screenMat);
+      screen.position.y = 0.5; g.add(screen);
+      const contentMat = new THREE.MeshStandardMaterial({ color:0x334455, emissive:0x4466aa, emissiveIntensity:1.0 });
+      const content = new THREE.Mesh(new THREE.BoxGeometry(1.8,1,0.05), contentMat);
+      content.position.set(0,0.5,0.03); g.add(content);
+      const standMat = new THREE.MeshStandardMaterial({ color:0x222222 });
+      const stand = new THREE.Mesh(new THREE.BoxGeometry(0.3,0.4,0.3), standMat);
+      stand.position.y = -0.4; g.add(stand);
+      const base = new THREE.Mesh(new THREE.BoxGeometry(0.8,0.1,0.5), standMat);
+      base.position.y = -0.65; g.add(base);
+      g.userData.isMonitor = true;
+      return g;
     }
 
     function createCoffeeMug() {
-      const mugGroup = new THREE.Group();
-
-      // Mug body
-      const bodyGeom = new THREE.CylinderGeometry(0.15, 0.12, 0.35, 16);
-      const bodyMat = new THREE.MeshStandardMaterial({ color: 0xcc4444 });
-      const body = new THREE.Mesh(bodyGeom, bodyMat);
-      body.position.y = 0.175;
-      mugGroup.add(body);
-
-      // Handle
-      const handleGeom = new THREE.TorusGeometry(0.1, 0.03, 8, 16, Math.PI);
-      const handle = new THREE.Mesh(handleGeom, bodyMat);
-      handle.rotation.y = Math.PI / 2;
-      handle.position.set(0.18, 0.15, 0);
-      mugGroup.add(handle);
-
-      // Steam particles (will be animated)
-      mugGroup.userData.hasSteam = true;
-      return mugGroup;
+      const g = new THREE.Group();
+      const bodyMat = new THREE.MeshStandardMaterial({ color:0xcc4444 });
+      const body = new THREE.Mesh(new THREE.CylinderGeometry(0.15,0.12,0.35,16), bodyMat);
+      body.position.y = 0.175; g.add(body);
+      const handle = new THREE.Mesh(new THREE.TorusGeometry(0.1,0.03,8,16,Math.PI), bodyMat);
+      handle.rotation.y = Math.PI/2; handle.position.set(0.18,0.15,0); g.add(handle);
+      g.userData.hasSteam = true;
+      return g;
     }
 
     function createDeskLamp() {
-      const lampGroup = new THREE.Group();
-
-      // Base
-      const baseGeom = new THREE.CylinderGeometry(0.15, 0.2, 0.1, 16);
-      const baseMat = new THREE.MeshStandardMaterial({ color: 0x444444 });
-      const base = new THREE.Mesh(baseGeom, baseMat);
-      lampGroup.add(base);
-
-      // Arm
-      const armGeom = new THREE.CylinderGeometry(0.03, 0.03, 0.6, 8);
-      const arm = new THREE.Mesh(armGeom, baseMat);
-      arm.position.y = 0.35;
-      lampGroup.add(arm);
-
-      // Head
-      const headGeom = new THREE.ConeGeometry(0.15, 0.2, 16);
-      const headMat = new THREE.MeshStandardMaterial({
-        color: 0x666666,
-        emissive: 0xffffaa,
-        emissiveIntensity: 0.3,
-      });
-      const head = new THREE.Mesh(headGeom, headMat);
-      head.position.y = 0.7;
-      head.rotation.x = Math.PI;
-      lampGroup.add(head);
-
-      lampGroup.userData.isLamp = true;
-      return lampGroup;
+      const g = new THREE.Group();
+      const baseMat = new THREE.MeshStandardMaterial({ color:0x444444 });
+      g.add(new THREE.Mesh(new THREE.CylinderGeometry(0.15,0.2,0.1,16), baseMat));
+      g.add(new THREE.Mesh(new THREE.CylinderGeometry(0.03,0.03,0.6,8), baseMat));
+      const headMat = new THREE.MeshStandardMaterial({ color:0x666666, emissive:0xffffaa, emissiveIntensity:0.3 });
+      const head = new THREE.Mesh(new THREE.ConeGeometry(0.15,0.2,16), headMat);
+      head.position.y = 0.7; head.rotation.x = Math.PI; g.add(head);
+      g.userData.isLamp = true;
+      return g;
     }
 
     function createPlant() {
-      const plantGroup = new THREE.Group();
-
-      // Pot
-      const potGeom = new THREE.CylinderGeometry(0.15, 0.12, 0.25, 16);
-      const potMat = new THREE.MeshStandardMaterial({ color: 0x8B4513 });
-      const pot = new THREE.Mesh(potGeom, potMat);
-      pot.position.y = 0.125;
-      plantGroup.add(pot);
-
-      // Leaves (multiple spheres)
-      const leafMat = new THREE.MeshStandardMaterial({ color: 0x228B22 });
+      const g = new THREE.Group();
+      const potMat = new THREE.MeshStandardMaterial({ color:0x8B4513 });
+      const pot = new THREE.Mesh(new THREE.CylinderGeometry(0.15,0.12,0.25,16), potMat);
+      pot.position.y = 0.125; g.add(pot);
+      const leafMat = new THREE.MeshStandardMaterial({ color:0x228B22 });
       for (let i = 0; i < 5; i++) {
-        const leafGeom = new THREE.SphereGeometry(0.12, 8, 8);
-        const leaf = new THREE.Mesh(leafGeom, leafMat);
-        const angle = (i / 5) * Math.PI * 2;
-        leaf.position.set(
-          Math.cos(angle) * 0.1,
-          0.35 + Math.random() * 0.1,
-          Math.sin(angle) * 0.1
-        );
-        leaf.scale.y = 1.3;
-        plantGroup.add(leaf);
+        const leaf = new THREE.Mesh(new THREE.SphereGeometry(0.12,8,8), leafMat);
+        const angle = (i/5)*Math.PI*2;
+        leaf.position.set(Math.cos(angle)*0.1, 0.35+Math.random()*0.1, Math.sin(angle)*0.1);
+        leaf.scale.y = 1.3; g.add(leaf);
       }
-
-      plantGroup.userData.isPlant = true;
-      return plantGroup;
+      g.userData.isPlant = true;
+      return g;
     }
 
     function createChair() {
-      const chairGroup = new THREE.Group();
-
-      // Seat
-      const seatGeom = new THREE.BoxGeometry(1, 0.15, 1);
-      const seatMat = new THREE.MeshStandardMaterial({ color: 0x1a1a2e });
-      const seat = new THREE.Mesh(seatGeom, seatMat);
-      seat.position.y = 1;
-      seat.castShadow = true;
-      chairGroup.add(seat);
-
-      // Backrest
-      const backGeom = new THREE.BoxGeometry(1, 1, 0.15);
-      const back = new THREE.Mesh(backGeom, seatMat);
-      back.position.set(0, 1.5, -0.45);
-      back.castShadow = true;
-      chairGroup.add(back);
-
-      // Base
-      const baseGeom = new THREE.CylinderGeometry(0.3, 0.3, 0.1, 16);
-      const baseMat = new THREE.MeshStandardMaterial({ color: 0x333333 });
-      const base = new THREE.Mesh(baseGeom, baseMat);
-      base.position.y = 0.05;
-      chairGroup.add(base);
-
-      // Pole
-      const poleGeom = new THREE.CylinderGeometry(0.05, 0.05, 0.9, 8);
-      const pole = new THREE.Mesh(poleGeom, baseMat);
-      pole.position.y = 0.55;
-      chairGroup.add(pole);
-
-      // Wheels (5)
+      const g = new THREE.Group();
+      const seatMat = new THREE.MeshStandardMaterial({ color:0x1a1a2e });
+      const seat = new THREE.Mesh(new THREE.BoxGeometry(1,0.15,1), seatMat);
+      seat.position.y = 1; seat.castShadow = true; g.add(seat);
+      const back = new THREE.Mesh(new THREE.BoxGeometry(1,1,0.15), seatMat);
+      back.position.set(0,1.5,-0.45); back.castShadow = true; g.add(back);
+      const baseMat = new THREE.MeshStandardMaterial({ color:0x333333 });
+      const base = new THREE.Mesh(new THREE.CylinderGeometry(0.3,0.3,0.1,16), baseMat);
+      base.position.y = 0.05; g.add(base);
+      const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.05,0.05,0.9,8), baseMat);
+      pole.position.y = 0.55; g.add(pole);
       for (let i = 0; i < 5; i++) {
-        const wheelGeom = new THREE.SphereGeometry(0.08, 8, 8);
-        const wheel = new THREE.Mesh(wheelGeom, baseMat);
-        const angle = (i / 5) * Math.PI * 2;
-        wheel.position.set(Math.cos(angle) * 0.25, 0.08, Math.sin(angle) * 0.25);
-        chairGroup.add(wheel);
+        const wheel = new THREE.Mesh(new THREE.SphereGeometry(0.08,8,8), baseMat);
+        const a = (i/5)*Math.PI*2;
+        wheel.position.set(Math.cos(a)*0.25, 0.08, Math.sin(a)*0.25); g.add(wheel);
       }
-
-      return chairGroup;
+      return g;
     }
 
     function createBossDesk(x, z) {
-      const deskGroup = new THREE.Group();
-      deskGroup.position.set(x, 0, z);
-
-      // Large desk
-      const deskGeom = new THREE.BoxGeometry(6, 0.25, 3);
-      const deskMat = new THREE.MeshStandardMaterial({ color: 0x3d2817, roughness: 0.5 });
-      const desk = new THREE.Mesh(deskGeom, deskMat);
-      desk.position.y = 1.5;
-      desk.castShadow = true;
-      deskGroup.add(desk);
-
-      // Executive chair
-      const chairGroup = new THREE.Group();
-      const seatGeom = new THREE.BoxGeometry(1.2, 0.2, 1.2);
-      const seatMat = new THREE.MeshStandardMaterial({ color: 0x1a1a1a });
-      const seat = new THREE.Mesh(seatGeom, seatMat);
-      seat.position.y = 1;
-      chairGroup.add(seat);
-
-      const backGeom = new THREE.BoxGeometry(1.2, 1.2, 0.2);
-      const back = new THREE.Mesh(backGeom, seatMat);
-      back.position.set(0, 1.6, -0.55);
-      chairGroup.add(back);
-
-      chairGroup.position.set(0, 0, 2.5);
-      deskGroup.add(chairGroup);
-
-      // Dual monitors
+      const g = new THREE.Group();
+      g.position.set(x, 0, z);
+      const dMat = new THREE.MeshStandardMaterial({ color:0x3d2817, roughness:0.5 });
+      const desk = new THREE.Mesh(new THREE.BoxGeometry(6,0.25,3), dMat);
+      desk.position.y = 1.5; desk.castShadow = true; g.add(desk);
       for (let i = 0; i < 2; i++) {
-        const monitor = createMonitor();
-        monitor.position.set(-0.8 + i * 1.6, 2.3, -0.5);
-        monitor.scale.set(0.8, 0.8, 0.8);
-        deskGroup.add(monitor);
-        officeObjects.monitors.push(monitor);
+        const mon = createMonitor();
+        mon.position.set(-0.8+i*1.6, 2.3, -0.5); mon.scale.set(0.8,0.8,0.8);
+        g.add(mon); officeObjects.monitors.push(mon);
       }
-
-      scene.add(deskGroup);
+      scene.add(g);
     }
 
     function createMeetingTable(x, z) {
-      const tableGroup = new THREE.Group();
-      tableGroup.position.set(x, 0, z);
-
-      // Table
-      const tableGeom = new THREE.BoxGeometry(5, 0.15, 2);
-      const tableMat = new THREE.MeshStandardMaterial({ color: 0x4a3728 });
-      const table = new THREE.Mesh(tableGeom, tableMat);
-      table.position.y = 1;
-      table.castShadow = true;
-      tableGroup.add(table);
-
-      // Legs
-      const legGeom = new THREE.BoxGeometry(0.15, 1, 0.15);
-      const legMat = new THREE.MeshStandardMaterial({ color: 0x333333 });
-      [[-2, -0.8], [2, -0.8], [-2, 0.8], [2, 0.8]].forEach(([lx, lz]) => {
-        const leg = new THREE.Mesh(legGeom, legMat);
-        leg.position.set(lx, 0.5, lz);
-        tableGroup.add(leg);
+      const g = new THREE.Group();
+      g.position.set(x, 0, z);
+      const tMat = new THREE.MeshStandardMaterial({ color:0x4a3728 });
+      const table = new THREE.Mesh(new THREE.BoxGeometry(5,0.15,2), tMat);
+      table.position.y = 1; table.castShadow = true; g.add(table);
+      const legMat = new THREE.MeshStandardMaterial({ color:0x333333 });
+      [[-2,-0.8],[2,-0.8],[-2,0.8],[2,0.8]].forEach(([lx,lz]) => {
+        const leg = new THREE.Mesh(new THREE.BoxGeometry(0.15,1,0.15), legMat);
+        leg.position.set(lx,0.5,lz); g.add(leg);
       });
-
-      // Chairs around
       for (let i = 0; i < 4; i++) {
-        const chairGeom = new THREE.BoxGeometry(0.8, 0.1, 0.8);
-        const chairMat = new THREE.MeshStandardMaterial({ color: 0x2a2a4a });
-        const chair = new THREE.Mesh(chairGeom, chairMat);
-        chair.position.set(-1.5 + i * 1, 0.7, 1.5);
-        tableGroup.add(chair);
+        const ch = new THREE.Mesh(new THREE.BoxGeometry(0.8,0.1,0.8), new THREE.MeshStandardMaterial({color:0x2a2a4a}));
+        ch.position.set(-1.5+i, 0.7, 1.5); g.add(ch);
       }
-
-      scene.add(tableGroup);
+      scene.add(g);
     }
 
     function createLounge(x, z) {
-      const loungeGroup = new THREE.Group();
-      loungeGroup.position.set(x, 0, z);
-
-      // Sofa
-      const sofaGeom = new THREE.BoxGeometry(4, 0.8, 1.5);
-      const sofaMat = new THREE.MeshStandardMaterial({ color: 0x4a4a6a });
-      const sofa = new THREE.Mesh(sofaGeom, sofaMat);
-      sofa.position.y = 0.4;
-      sofa.castShadow = true;
-      loungeGroup.add(sofa);
-
-      // Sofa back
-      const backGeom = new THREE.BoxGeometry(4, 0.6, 0.2);
-      const back = new THREE.Mesh(backGeom, sofaMat);
-      back.position.set(0, 0.7, -0.65);
-      loungeGroup.add(back);
-
-      // Coffee table
-      const tableGeom = new THREE.BoxGeometry(2, 0.1, 1);
-      const tableMat = new THREE.MeshStandardMaterial({ color: 0x3d2817 });
-      const coffeeTable = new THREE.Mesh(tableGeom, tableMat);
-      coffeeTable.position.set(0, 0.4, 1.5);
-      loungeGroup.add(coffeeTable);
-
-      // Plant
+      const g = new THREE.Group();
+      g.position.set(x, 0, z);
+      const sMat = new THREE.MeshStandardMaterial({ color:0x4a4a6a });
+      const sofa = new THREE.Mesh(new THREE.BoxGeometry(4,0.8,1.5), sMat);
+      sofa.position.y = 0.4; sofa.castShadow = true; g.add(sofa);
+      const back = new THREE.Mesh(new THREE.BoxGeometry(4,0.6,0.2), sMat);
+      back.position.set(0,0.7,-0.65); g.add(back);
+      const ct = new THREE.Mesh(new THREE.BoxGeometry(2,0.1,1), new THREE.MeshStandardMaterial({color:0x3d2817}));
+      ct.position.set(0,0.4,1.5); g.add(ct);
       const plant = createPlant();
-      plant.scale.set(1.5, 1.5, 1.5);
-      plant.position.set(3, 0, 0);
-      loungeGroup.add(plant);
+      plant.scale.set(1.5,1.5,1.5); plant.position.set(3,0,0); g.add(plant);
       officeObjects.plants.push(plant);
-
-      scene.add(loungeGroup);
+      scene.add(g);
     }
 
     function createServerRack(x, z) {
-      const rackGroup = new THREE.Group();
-      rackGroup.position.set(x, 0, z);
-
-      // Rack body
-      const rackGeom = new THREE.BoxGeometry(1, 5, 1.5);
-      const rackMat = new THREE.MeshStandardMaterial({ color: 0x1a1a1a });
-      const rack = new THREE.Mesh(rackGeom, rackMat);
-      rack.position.y = 2.5;
-      rack.castShadow = true;
-      rackGroup.add(rack);
-
-      // Blinking lights
+      const g = new THREE.Group();
+      g.position.set(x, 0, z);
+      const rack = new THREE.Mesh(
+        new THREE.BoxGeometry(1,5,1.5),
+        new THREE.MeshStandardMaterial({ color:0x1a1a1a })
+      );
+      rack.position.y = 2.5; rack.castShadow = true; g.add(rack);
       for (let i = 0; i < 8; i++) {
-        const lightGeom = new THREE.BoxGeometry(0.1, 0.1, 0.05);
         const lightMat = new THREE.MeshStandardMaterial({
-          color: i % 2 === 0 ? 0x00ff00 : 0x0088ff,
-          emissive: i % 2 === 0 ? 0x00ff00 : 0x0088ff,
+          color: i%2===0 ? 0x00ff00 : 0x0088ff,
+          emissive: i%2===0 ? 0x00ff00 : 0x0088ff,
           emissiveIntensity: 1,
         });
-        const light = new THREE.Mesh(lightGeom, lightMat);
-        light.position.set(0.51, 1 + i * 0.5, 0);
+        const light = new THREE.Mesh(new THREE.BoxGeometry(0.1,0.1,0.05), lightMat);
+        light.position.set(0.51, 1+i*0.5, 0);
         light.userData.blinkLight = true;
         light.userData.blinkOffset = i * 0.3;
-        rackGroup.add(light);
+        g.add(light);
       }
-
-      scene.add(rackGroup);
-    }
-
-    // ============================================================
-    // LIBRARY ZONE
-    // ============================================================
-    function createLibrary(x, z) {
-      const group = new THREE.Group();
-      group.position.set(x, 0, z);
-
-      // Two bookshelves
-      const shelfMat = new THREE.MeshStandardMaterial({ color: 0x5d4037 });
-      const bookColors = [0xe53935, 0x1e88e5, 0x43a047, 0xfb8c00, 0x8e24aa, 0x00acc1, 0xffb300, 0x6d4c41];
-      for (let shelf = 0; shelf < 2; shelf++) {
-        const sx = shelf === 0 ? -1 : 1;
-        // Shelf frame
-        const frame = new THREE.Mesh(
-          new THREE.BoxGeometry(2.5, 4, 0.4),
-          shelfMat
-        );
-        frame.position.set(sx, 2, 0);
-        frame.castShadow = true;
-        group.add(frame);
-        // Books on 4 rows
-        for (let row = 0; row < 4; row++) {
-          for (let col = 0; col < 6; col++) {
-            const bw = 0.18 + Math.random() * 0.1;
-            const bh = 0.55 + Math.random() * 0.25;
-            const book = new THREE.Mesh(
-              new THREE.BoxGeometry(bw, bh, 0.28),
-              new THREE.MeshStandardMaterial({ color: bookColors[(row * 6 + col) % bookColors.length] })
-            );
-            book.position.set(
-              sx + (-1.1 + col * 0.38),
-              0.6 + row * 0.9,
-              0
-            );
-            group.add(book);
-          }
-        }
-      }
-
-      // Reading armchair
-      const chairGroup = new THREE.Group();
-      const chairMat = new THREE.MeshStandardMaterial({ color: 0x6d4c41 });
-      // Seat
-      const seat = new THREE.Mesh(new THREE.BoxGeometry(1.4, 0.2, 1.4), chairMat);
-      seat.position.y = 0.9;
-      chairGroup.add(seat);
-      // Backrest
-      const back = new THREE.Mesh(new THREE.BoxGeometry(1.4, 1.2, 0.2), chairMat);
-      back.position.set(0, 1.5, -0.6);
-      chairGroup.add(back);
-      // Armrests
-      const arm = new THREE.Mesh(new THREE.BoxGeometry(0.15, 0.5, 1.4), chairMat);
-      arm.position.set(-0.65, 1.15, 0);
-      chairGroup.add(arm);
-      const arm2 = arm.clone();
-      arm2.position.x = 0.65;
-      chairGroup.add(arm2);
-      // Cushion
-      const cushion = new THREE.Mesh(
-        new THREE.BoxGeometry(1.2, 0.2, 1.2),
-        new THREE.MeshStandardMaterial({ color: 0x795548 })
-      );
-      cushion.position.y = 1.05;
-      chairGroup.add(cushion);
-      chairGroup.position.set(0, 0, 1.2);
-      group.add(chairGroup);
-
-      // Floor lamp
-      const lampBase = new THREE.Mesh(
-        new THREE.CylinderGeometry(0.2, 0.25, 0.1, 16),
-        new THREE.MeshStandardMaterial({ color: 0x888888 })
-      );
-      lampBase.position.set(-1.5, 0.05, 1.5);
-      group.add(lampBase);
-      const lampPole = new THREE.Mesh(
-        new THREE.CylinderGeometry(0.04, 0.04, 1.2, 8),
-        new THREE.MeshStandardMaterial({ color: 0x999999 })
-      );
-      lampPole.position.set(-1.5, 0.7, 1.5);
-      group.add(lampPole);
-      const lampShade = new THREE.Mesh(
-        new THREE.ConeGeometry(0.3, 0.35, 16),
-        new THREE.MeshStandardMaterial({
-          color: 0xddddcc,
-          emissive: 0xffeeaa,
-          emissiveIntensity: 0.4,
-          side: THREE.DoubleSide,
-        })
-      );
-      lampShade.position.set(-1.5, 1.45, 1.5);
-      group.add(lampShade);
-
-      // Small side table
-      const tableMat = new THREE.MeshStandardMaterial({ color: 0x4e342e });
-      const sideTable = new THREE.Mesh(new THREE.BoxGeometry(0.8, 0.08, 0.8), tableMat);
-      sideTable.position.set(1.8, 0.7, 1.2);
-      group.add(sideTable);
-      const tableLeg = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.7, 0.1), tableMat);
-      tableLeg.position.set(1.8, 0.35, 1.2);
-      group.add(tableLeg);
-
-      scene.add(group);
-    }
-
-    // ============================================================
-    // BREAK ROOM / KITCHEN ZONE
-    // ============================================================
-    function createBreakRoom(x, z) {
-      const group = new THREE.Group();
-      group.position.set(x, 0, z);
-
-      const counterMat = new THREE.MeshStandardMaterial({ color: 0x78909c });
-      const woodMat = new THREE.MeshStandardMaterial({ color: 0x6d4c41 });
-      const metalMat = new THREE.MeshStandardMaterial({ color: 0xb0bec5, metalness: 0.6, roughness: 0.3 });
-
-      // Counter along top wall
-      const counter = new THREE.Mesh(new THREE.BoxGeometry(5, 1.5, 1), counterMat);
-      counter.position.set(0, 0.75, -2.2);
-      counter.castShadow = true;
-      group.add(counter);
-      // Counter top
-      const counterTop = new THREE.Mesh(
-        new THREE.BoxGeometry(5.1, 0.1, 1.1),
-        new THREE.MeshStandardMaterial({ color: 0xECEFF1 })
-      );
-      counterTop.position.set(0, 1.55, -2.2);
-      group.add(counterTop);
-
-      // Coffee machine
-      const machineBody = new THREE.Mesh(new THREE.BoxGeometry(0.7, 1.2, 0.6), metalMat);
-      machineBody.position.set(-1.5, 1.6, -2.2);
-      group.add(machineBody);
-      // Dispenser nozzle
-      const nozzle = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.3, 0.1), metalMat);
-      nozzle.position.set(-1.5, 1.1, -1.88);
-      group.add(nozzle);
-      // Drip tray
-      const tray = new THREE.Mesh(
-        new THREE.BoxGeometry(0.5, 0.05, 0.4),
-        new THREE.MeshStandardMaterial({ color: 0x37474f })
-      );
-      tray.position.set(-1.5, 0.95, -1.9);
-      group.add(tray);
-      // Small display on machine
-      const display = new THREE.Mesh(
-        new THREE.BoxGeometry(0.3, 0.15, 0.05),
-        new THREE.MeshStandardMaterial({ color: 0x00bfa5, emissive: 0x00bfa5, emissiveIntensity: 0.8 })
-      );
-      display.position.set(-1.5, 2.0, -1.88);
-      group.add(display);
-
-      // Snack shelf
-      const shelfUnit = new THREE.Mesh(new THREE.BoxGeometry(1.2, 1.5, 0.6), woodMat);
-      shelfUnit.position.set(1.8, 0.75, -2.2);
-      group.add(shelfUnit);
-      // Snack boxes on shelf
-      const snackColors = [0xff7043, 0xffca28, 0x66bb6a, 0xab47bc];
-      for (let i = 0; i < 4; i++) {
-        const snack = new THREE.Mesh(
-          new THREE.BoxGeometry(0.2, 0.3, 0.1),
-          new THREE.MeshStandardMaterial({ color: snackColors[i] })
-        );
-        snack.position.set(1.5 + i * 0.28, 1.55, -1.88);
-        group.add(snack);
-      }
-
-      // Water cooler
-      const coolerBody = new THREE.Mesh(new THREE.BoxGeometry(0.5, 1.0, 0.5), metalMat);
-      coolerBody.position.set(0.3, 0.5, -2.2);
-      group.add(coolerBody);
-      // Water jug
-      const jug = new THREE.Mesh(
-        new THREE.CylinderGeometry(0.2, 0.2, 0.6, 16),
-        new THREE.MeshStandardMaterial({ color: 0x1565c0, transparent: true, opacity: 0.7 })
-      );
-      jug.position.set(0.3, 1.3, -2.2);
-      group.add(jug);
-
-      // Round table
-      const rtTop = new THREE.Mesh(
-        new THREE.CylinderGeometry(1.0, 1.0, 0.12, 24),
-        new THREE.MeshStandardMaterial({ color: 0x4e342e })
-      );
-      rtTop.position.set(0, 1.2, 0);
-      group.add(rtTop);
-      const rtLeg = new THREE.Mesh(
-        new THREE.CylinderGeometry(0.08, 0.15, 1.2, 8),
-        new THREE.MeshStandardMaterial({ color: 0x555555 })
-      );
-      rtLeg.position.set(0, 0.6, 0);
-      group.add(rtLeg);
-
-      // Chairs around round table
-      for (let i = 0; i < 4; i++) {
-        const angle = (i / 4) * Math.PI * 2;
-        const cx = Math.sin(angle) * 1.6;
-        const cz = Math.cos(angle) * 1.6;
-        const chair = new THREE.Mesh(
-          new THREE.BoxGeometry(0.7, 0.12, 0.7),
-          new THREE.MeshStandardMaterial({ color: 0xefebe9 })
-        );
-        chair.position.set(cx, 0.76, cz);
-        group.add(chair);
-        const chairBack = new THREE.Mesh(
-          new THREE.BoxGeometry(0.7, 0.6, 0.1),
-          new THREE.MeshStandardMaterial({ color: 0xefebe9 })
-        );
-        chairBack.position.set(cx, 1.1, cz - Math.cos(angle) * 0.35);
-        group.add(chairBack);
-      }
-
-      // Small plant
-      const plant = createPlant();
-      plant.scale.set(1.2, 1.2, 1.2);
-      plant.position.set(-2.3, 1.6, -1.8);
-      group.add(plant);
-      officeObjects.plants.push(plant);
-
-      scene.add(group);
-    }
-
-    // ============================================================
-    // AGENT BEHAVIOR SYSTEM
-    // ============================================================
-    function initAgentBehaviors() {
-      for (let i = 0; i < CONFIG.agentCount; i++) {
-        const deskKey = `desk_${i}`;
-        const zone = ZONE_CENTERS[deskKey] || ZONE_CENTERS.desk_0;
-        agentBehaviors[i] = {
-          behavior: 'idle',
-          zone: deskKey,
-          walkStart: { x: 0, z: 0 },
-          walkTarget: { x: zone.x, z: zone.z },
-          walkProgress: 1,
-          walkDuration: 0,
-          currentAnim: 'idle',
-        };
-        // Create DOM bubble element (hidden)
-        const bubble = document.createElement('div');
-        bubble.className = 'speech-bubble';
-        bubble.style.display = 'none';
-        document.body.appendChild(bubble);
-        agentBubbles[i] = bubble;
-      }
-    }
-
-    // Convert zone + desk offset to world position
-    function getDeskWorldPos(agentIndex) {
-      const deskPositions = [
-        { x: -5, z:  2 },
-        { x: -5, z: -1 },
-        { x: -5, z: -4 },
-        { x: -1, z:  2 },
-        { x: -1, z: -1 },
-        { x: -1, z: -4 },
-      ];
-      return deskPositions[agentIndex] || deskPositions[0];
-    }
-
-    function setAgentBehavior(agentIndex, behavior) {
-      const mapping = BEHAVIOR_MAP[behavior];
-      if (!mapping) return;
-
-      const ab = agentBehaviors[agentIndex];
-      const prevBehavior = ab.behavior;
-      ab.behavior = behavior;
-
-      // Resolve zone: desk_N uses own desk, others use the mapped zone
-      let targetZoneKey;
-      if (mapping.zone.startsWith('desk_')) {
-        targetZoneKey = `desk_${agentIndex}`;
-      } else {
-        targetZoneKey = mapping.zone;
-      }
-
-      const targetZone = ZONE_CENTERS[targetZoneKey] || getDeskWorldPos(agentIndex);
-
-      // If same position, just update animation
-      const dx = targetZone.x - ab.walkTarget.x;
-      const dz = targetZone.z - ab.walkTarget.z;
-      if (Math.abs(dx) < 0.1 && Math.abs(dz) < 0.1) {
-        ab.walkProgress = 1;
-        ab.walkTarget = { x: targetZone.x, z: targetZone.z };
-        ab.currentAnim = mapping.anim;
-      } else {
-        // Start walking to new zone
-        ab.walkStart = { x: agents[agentIndex].position.x, z: agents[agentIndex].position.z };
-        ab.walkTarget = { x: targetZone.x, z: targetZone.z };
-        ab.walkProgress = 0;
-        ab.walkDuration = 1500; // ms
-        ab.currentAnim = 'walking';
-      }
-
-      // Update speech bubble
-      updateBubble(agentIndex, mapping.bubble || null);
-
-      // Spawn particles if behavior has a particle type
-      if (mapping.particle) {
-        spawnParticle(agentIndex, mapping.particle);
-      }
-
-      // Update agent appearance (status ring color)
-      const statusColors = {
-        working: 0x00ff88,
-        thinking: 0x4488ff,
-        researching: 0x88aaff,
-        meeting: 0xffcc44,
-        deploying: 0xff8844,
-        debugging: 0xff4444,
-        receiving_task: 0x44ffaa,
-        reporting: 0x44ffaa,
-        idle: 0xffaa00,
-        coffee: 0xffaa00,
-        snacking: 0xffaa00,
-        sleeping: 0x8888ff,
-        napping: 0x8888ff,
-        panicking: 0xff2222,
-        dead: 0x444444,
-        overloaded: 0xff6600,
-        reviving: 0x44aaff,
-      };
-      const color = statusColors[behavior] || 0xffffff;
-      if (agents[agentIndex] && agents[agentIndex].userData.statusRing) {
-        agents[agentIndex].userData.statusRing.material.color.setHex(color);
-        agents[agentIndex].userData.statusRing.material.emissive.setHex(color);
-      }
-    }
-
-    function updateAgentWalking(deltaMs) {
-      agentBehaviors.forEach((ab, i) => {
-        if (!agents[i]) return;
-
-        if (ab.walkProgress < 1) {
-          // Lerp position with slight bob
-          ab.walkProgress = Math.min(1, ab.walkProgress + deltaMs / ab.walkDuration);
-          const t = easeInOutQuad(ab.walkProgress);
-          agents[i].position.x = lerp(ab.walkStart.x, ab.walkTarget.x, t);
-          agents[i].position.z = lerp(ab.walkStart.z, ab.walkTarget.z, t);
-          // Bob animation while walking
-          const bob = Math.sin(ab.walkProgress * Math.PI * 6) * 0.15;
-          agents[i].position.y = bob;
-        } else {
-          agents[i].position.x = ab.walkTarget.x;
-          agents[i].position.z = ab.walkTarget.z;
-          agents[i].position.y = 0;
-        }
-
-        // Update bubble screen position
-        updateBubblePosition(i);
-      });
-    }
-
-    function easeInOutQuad(t) {
-      return t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
-    }
-    function lerp(a, b, t) { return a + (b - a) * t; }
-
-    // ── Speech Bubbles ──────────────────────────────────────────────────────
-    function updateBubble(agentIndex, text) {
-      const bubble = agentBubbles[agentIndex];
-      if (!bubble) return;
-      if (!text) {
-        bubble.style.display = 'none';
-        return;
-      }
-      bubble.textContent = text;
-      bubble.style.display = 'block';
-      // Re-trigger animation
-      bubble.style.animation = 'none';
-      bubble.offsetHeight; // reflow
-      bubble.style.animation = 'bubble-pop 0.25s ease-out';
-    }
-
-    function updateBubblePosition(agentIndex) {
-      const bubble = agentBubbles[agentIndex];
-      if (!bubble || bubble.style.display === 'none') return;
-      const agent = agents[agentIndex];
-      if (!agent) return;
-
-      const worldPos = new THREE.Vector3(
-        agent.position.x,
-        agent.position.y + 2.5, // above agent head
-        agent.position.z
-      );
-      worldPos.project(camera);
-
-      const x = (worldPos.x * 0.5 + 0.5) * window.innerWidth;
-      const y = (-worldPos.y * 0.5 + 0.5) * window.innerHeight;
-
-      // Hide if behind camera or off screen
-      if (worldPos.z > 1 || x < -50 || x > window.innerWidth + 50 || y < -50 || y > window.innerHeight + 50) {
-        bubble.style.display = 'none';
-        return;
-      }
-
-      bubble.style.left = x + 'px';
-      bubble.style.top = (y - 10) + 'px';
-    }
-
-    function hideAllBubbles() {
-      agentBubbles.forEach(b => { if (b) b.style.display = 'none'; });
-    }
-
-    // ── Particle Effects ───────────────────────────────────────────────────
-    const PARTICLE_CHARS = {
-      code:        ['{}', '</>', '=>', '()', '[]', '&&', '||', '::'],
-      question:    ['?', '??', '¿'],
-      sparkle:     ['✨', '★', '✦', '⬥'],
-      error:       ['!', '✖', '⚠'],
-      check:       ['✓', '✔', '✅'],
-      coffee_steam:['~', '°'],
-      lightning:   ['⚡'],
-      zzz:         ['Z', 'z'],
-      smoke:       ['·', '•'],
-    };
-
-    // Build a shared canvas texture cache keyed by (char, colorHex)
-    const spriteTextureCache = {};
-    function makeCharTexture(char, colorHex) {
-      const key = char + '_' + colorHex;
-      if (spriteTextureCache[key]) return spriteTextureCache[key];
-
-      const canvas = document.createElement('canvas');
-      canvas.width = 64;
-      canvas.height = 64;
-      const ctx = canvas.getContext('2d');
-      ctx.clearRect(0, 0, 64, 64);
-      ctx.font = 'bold 36px monospace';
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.fillStyle = '#' + colorHex.toString(16).padStart(6, '0');
-      ctx.shadowColor = '#' + colorHex.toString(16).padStart(6, '0');
-      ctx.shadowBlur = 8;
-      ctx.fillText(char, 32, 32);
-
-      const tex = new THREE.CanvasTexture(canvas);
-      spriteTextureCache[key] = tex;
-      return tex;
-    }
-
-    function spawnParticle(agentIndex, type) {
-      const agent = agents[agentIndex];
-      if (!agent) return;
-
-      const chars = PARTICLE_CHARS[type] || ['·'];
-      const char = chars[Math.floor(Math.random() * chars.length)];
-      const colorHex = getParticleColorHex(type);
-      const tex = makeCharTexture(char, colorHex);
-
-      const mat = new THREE.SpriteMaterial({
-        map: tex,
-        transparent: true,
-        opacity: 1,
-        depthWrite: false,
-      });
-      const sprite = new THREE.Sprite(mat);
-      sprite.scale.set(0.6, 0.6, 0.6);
-
-      const deskPos = getDeskWorldPos(agentIndex);
-      sprite.position.set(
-        deskPos.x + (Math.random() - 0.5) * 2,
-        2.0,
-        deskPos.z + (Math.random() - 0.5) * 2
-      );
-
-      sprite.userData = {
-        type,
-        char,
-        agentIndex,
-        age: 0,
-        maxAge: 1800 + Math.random() * 1200,
-        velocity: {
-          x: (Math.random() - 0.5) * 0.6,
-          y: 0.4 + Math.random() * 0.7,
-          z: (Math.random() - 0.5) * 0.6,
-        },
-      };
-
-      scene.add(sprite);
-      agentParticles.push(sprite);
-    }
-
-    function getParticleColorHex(type) {
-      const c = {
-        code:        [0x44ffcc, 0x66ffaa, 0x88ffdd],
-        question:     [0x88aaff, 0xaaaaff],
-        sparkle:     [0xffdd44, 0xffcc00],
-        error:       [0xff4444, 0xff2222],
-        check:       [0x44ff88, 0x88ffbb],
-        coffee_steam:[0xccaa88, 0xddbb99],
-        lightning:   [0xffee44, 0xffcc00],
-        zzz:         [0x8888ff, 0xaaaaff],
-        smoke:       [0x888888, 0xaaaaaa],
-      };
-      const arr = c[type] || [0xffffff];
-      return arr[Math.floor(Math.random() * arr.length)];
-    }
-
-    function updateParticles(deltaMs) {
-      const toRemove = [];
-      agentParticles.forEach((p, idx) => {
-        p.userData.age += deltaMs;
-        const progress = p.userData.age / p.userData.maxAge;
-
-        // Float upward with drift
-        p.position.x += p.userData.velocity.x * deltaMs * 0.001;
-        p.position.y += p.userData.velocity.y * deltaMs * 0.001;
-        p.position.z += p.userData.velocity.z * deltaMs * 0.001;
-        // Damping
-        p.userData.velocity.x *= 0.99;
-        p.userData.velocity.z *= 0.99;
-        // Oscillate slightly
-        p.position.x += Math.sin(p.userData.age * 0.005) * 0.003;
-
-        // Fade out
-        p.material.opacity = Math.max(0, 1 - progress);
-
-        // Scale down as it dies
-        const scale = 0.6 * (1 - progress * 0.4);
-        p.scale.set(scale, scale, scale);
-
-        if (progress >= 1) {
-          scene.remove(p);
-          toRemove.push(idx);
-        }
-      });
-      for (let i = toRemove.length - 1; i >= 0; i--) {
-        agentParticles.splice(toRemove[i], 1);
-      }
-    }
-
-    // Demo: cycle agent behaviors periodically
-    function demoBehaviorCycle() {
-      const behaviors = Object.keys(BEHAVIOR_MAP);
-      agents.forEach((agent, i) => {
-        const behavior = behaviors[Math.floor(Math.random() * behaviors.length)];
-        setAgentBehavior(i, behavior);
-      });
+      scene.add(g);
     }
 
     // ============================================================
     // LIGHTING
     // ============================================================
     function createLights() {
-      // Ambient light
       const ambient = new THREE.AmbientLight(0x8899bb, 1.2);
       scene.add(ambient);
-
-      // Main directional light (sun)
       ambientLights.main = new THREE.DirectionalLight(0xffffff, 1.2);
-      ambientLights.main.position.set(20, 30, 20);
+      ambientLights.main.position.set(20,30,20);
       ambientLights.main.castShadow = true;
       ambientLights.main.shadow.mapSize.width = 2048;
       ambientLights.main.shadow.mapSize.height = 2048;
@@ -1848,143 +952,90 @@
       ambientLights.main.shadow.camera.top = 25;
       ambientLights.main.shadow.camera.bottom = -25;
       scene.add(ambientLights.main);
-
-      // Fill light
       ambientLights.fill = new THREE.DirectionalLight(0x8888ff, 0.3);
-      ambientLights.fill.position.set(-20, 20, -10);
+      ambientLights.fill.position.set(-20,20,-10);
       scene.add(ambientLights.fill);
-
-      // Accent light
       ambientLights.accent = new THREE.PointLight(0xff8844, 0.5, 20);
-      ambientLights.accent.position.set(0, 8, 0);
+      ambientLights.accent.position.set(0,8,0);
       scene.add(ambientLights.accent);
-
-      // Desk spotlights
-      const spotPositions = [
-        [-12, 8, -8], [-12, 8, 0], [-12, 8, 8],
-        [0, 8, -8], [0, 8, 0], [0, 8, 8],
-      ];
-      spotPositions.forEach(pos => {
-        const spot = new THREE.SpotLight(0xffffee, 0.3, 15, Math.PI / 6);
-        spot.position.set(pos[0], pos[1], pos[2]);
-        spot.target.position.set(pos[0], 0, pos[2]);
-        scene.add(spot);
-        scene.add(spot.target);
+      [[-12,8,-8],[-12,8,0],[-12,8,8],[0,8,-8],[0,8,0],[0,8,8]].forEach(p => {
+        const spot = new THREE.SpotLight(0xffffee, 0.3, 15, Math.PI/6);
+        spot.position.set(p[0],p[1],p[2]);
+        spot.target.position.set(p[0],0,p[2]);
+        scene.add(spot); scene.add(spot.target);
       });
     }
 
     function updateLighting() {
-      // Time: 0-24, 6=sunrise, 12=noon, 18=sunset
       const sunAngle = ((timeOfDay - 6) / 12) * Math.PI;
-      
-      // Main light intensity based on time
-      let mainIntensity, fillIntensity, ambientIntensity;
-      let mainColor, fillColor;
-      
+      let mainIntensity, fillIntensity, ambientIntensity, mainColor, fillColor;
       if (timeOfDay >= 6 && timeOfDay <= 18) {
-        // Daytime
-        const dayProgress = (timeOfDay - 6) / 12;
-        mainIntensity = 0.8 + Math.sin(dayProgress * Math.PI) * 0.7;
-        fillIntensity = 0.2 + Math.sin(dayProgress * Math.PI) * 0.2;
-        ambientIntensity = 0.7 + Math.sin(dayProgress * Math.PI) * 0.3;
-        
-        // Warm morning/evening, cool midday
+        const prog = (timeOfDay - 6) / 12;
+        mainIntensity = 0.8 + Math.sin(prog*Math.PI)*0.7;
+        fillIntensity = 0.2 + Math.sin(prog*Math.PI)*0.2;
+        ambientIntensity = 0.7 + Math.sin(prog*Math.PI)*0.3;
         if (timeOfDay < 9 || timeOfDay > 15) {
-          mainColor = new THREE.Color(0xffaa66);
-          fillColor = new THREE.Color(0x6666aa);
+          mainColor = new THREE.Color(0xffaa66); fillColor = new THREE.Color(0x6666aa);
         } else {
-          mainColor = new THREE.Color(0xffffff);
-          fillColor = new THREE.Color(0x8888ff);
+          mainColor = new THREE.Color(0xffffff); fillColor = new THREE.Color(0x8888ff);
         }
       } else {
-        // Nighttime — keep enough light to see the office
-        mainIntensity = 0.5;
-        fillIntensity = 0.4;
-        ambientIntensity = 0.6;
-        mainColor = new THREE.Color(0x334488);
-        fillColor = new THREE.Color(0x223355);
+        mainIntensity = 0.5; fillIntensity = 0.4; ambientIntensity = 0.6;
+        mainColor = new THREE.Color(0x334488); fillColor = new THREE.Color(0x223355);
       }
-
       ambientLights.main.intensity = mainIntensity;
       ambientLights.main.color = mainColor;
-      ambientLights.main.position.x = 20 * Math.cos(sunAngle);
-      ambientLights.main.position.y = 30 * Math.abs(Math.sin(sunAngle)) + 5;
-      
+      ambientLights.main.position.x = 20*Math.cos(sunAngle);
+      ambientLights.main.position.y = 30*Math.abs(Math.sin(sunAngle))+5;
       ambientLights.fill.intensity = fillIntensity;
       ambientLights.fill.color = fillColor;
-
-      // Update scene background (day = light blue-gray office, night = deep indigo)
-      const dayIntensity = Math.max(0, Math.sin(((timeOfDay - 6) / 12) * Math.PI));
-      const bgColor = new THREE.Color().lerpColors(
-        new THREE.Color(0x0d1020),   // night: deep indigo
-        new THREE.Color(0x6a7a8a),   // day: light office blue-gray
-        dayIntensity
-      );
-      scene.background = bgColor;
-
-      // Update time label
+      const dayInt = Math.max(0, Math.sin(((timeOfDay-6)/12)*Math.PI));
+      scene.background = new THREE.Color().lerpColors(new THREE.Color(0x0d1020), new THREE.Color(0x6a7a8a), dayInt);
       const hours = Math.floor(timeOfDay);
-      const mins = Math.floor((timeOfDay % 1) * 60);
-      const timeStr = `${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}`;
-      const icon = timeOfDay >= 6 && timeOfDay <= 18 ? '☀️' : '🌙';
-      const period = timeOfDay >= 6 && timeOfDay <= 18 ? 'Day' : 'Night';
-      document.getElementById('time-label').textContent = `${icon} ${period} - ${timeStr}`;
+      const mins = Math.floor((timeOfDay%1)*60);
+      const ts = `${hours.toString().padStart(2,'0')}:${mins.toString().padStart(2,'0')}`;
+      const icon = timeOfDay>=6&&timeOfDay<=18 ? '☀️' : '🌙';
+      const period = timeOfDay>=6&&timeOfDay<=18 ? 'Day' : 'Night';
+      const el = document.getElementById('time-label');
+      if (el) el.textContent = `${icon} ${period} - ${ts}`;
     }
 
     // ============================================================
-    // DUST PARTICLES
+    // DUST PARTICLES (performance-adaptive)
     // ============================================================
     function createDustParticles() {
-      const particleCount = 200;
+      const baseCount = isLowEnd ? 50 : 200;
       const geometry = new THREE.BufferGeometry();
-      const positions = new Float32Array(particleCount * 3);
-      const velocities = [];
-
-      for (let i = 0; i < particleCount; i++) {
-        positions[i * 3] = (Math.random() - 0.5) * CONFIG.officeWidth;
-        positions[i * 3 + 1] = Math.random() * 8;
-        positions[i * 3 + 2] = (Math.random() - 0.5) * CONFIG.officeDepth;
-        velocities.push({
-          x: (Math.random() - 0.5) * 0.01,
-          y: (Math.random() - 0.5) * 0.005,
-          z: (Math.random() - 0.5) * 0.01,
-        });
+      const positions = new Float32Array(baseCount * 3);
+      dustVelocities = [];
+      for (let i = 0; i < baseCount; i++) {
+        positions[i*3] = (Math.random()-0.5)*CONFIG.officeWidth;
+        positions[i*3+1] = Math.random()*8;
+        positions[i*3+2] = (Math.random()-0.5)*CONFIG.officeDepth;
+        dustVelocities.push({ x:(Math.random()-0.5)*0.01, y:(Math.random()-0.5)*0.005, z:(Math.random()-0.5)*0.01 });
       }
-
       geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-
-      const material = new THREE.PointsMaterial({
-        color: 0xffffff,
-        size: 0.05,
-        transparent: true,
-        opacity: 0.4,
-      });
-
+      const material = new THREE.PointsMaterial({ color:0xffffff, size:0.05, transparent:true, opacity:0.4 });
       dustParticles = new THREE.Points(geometry, material);
-      dustParticles.userData.velocities = velocities;
+      dustParticles.userData.baseCount = baseCount;
       scene.add(dustParticles);
+      _dustPosArray = positions;
     }
 
     function updateDustParticles() {
-      if (!dustParticles) return;
-      
-      const positions = dustParticles.geometry.attributes.position.array;
-      const velocities = dustParticles.userData.velocities;
-
-      for (let i = 0; i < velocities.length; i++) {
-        positions[i * 3] += velocities[i].x;
-        positions[i * 3 + 1] += velocities[i].y;
-        positions[i * 3 + 2] += velocities[i].z;
-
-        // Wrap around
-        if (positions[i * 3] > CONFIG.officeWidth / 2) positions[i * 3] = -CONFIG.officeWidth / 2;
-        if (positions[i * 3] < -CONFIG.officeWidth / 2) positions[i * 3] = CONFIG.officeWidth / 2;
-        if (positions[i * 3 + 1] > 8) positions[i * 3 + 1] = 0;
-        if (positions[i * 3 + 1] < 0) positions[i * 3 + 1] = 8;
-        if (positions[i * 3 + 2] > CONFIG.officeDepth / 2) positions[i * 3 + 2] = -CONFIG.officeDepth / 2;
-        if (positions[i * 3 + 2] < -CONFIG.officeDepth / 2) positions[i * 3 + 2] = CONFIG.officeDepth / 2;
+      if (!dustParticles || !_dustPosArray) return;
+      const pos = _dustPosArray;
+      for (let i = 0; i < dustVelocities.length; i++) {
+        pos[i*3] += dustVelocities[i].x;
+        pos[i*3+1] += dustVelocities[i].y;
+        pos[i*3+2] += dustVelocities[i].z;
+        if (pos[i*3] > CONFIG.officeWidth/2) pos[i*3] = -CONFIG.officeWidth/2;
+        if (pos[i*3] < -CONFIG.officeWidth/2) pos[i*3] = CONFIG.officeWidth/2;
+        if (pos[i*3+1] > 8) pos[i*3+1] = 0;
+        if (pos[i*3+1] < 0) pos[i*3+1] = 8;
+        if (pos[i*3+2] > CONFIG.officeDepth/2) pos[i*3+2] = -CONFIG.officeDepth/2;
+        if (pos[i*3+2] < -CONFIG.officeDepth/2) pos[i*3+2] = CONFIG.officeDepth/2;
       }
-
       dustParticles.geometry.attributes.position.needsUpdate = true;
     }
 
@@ -1992,482 +1043,126 @@
     // AGENTS
     // ============================================================
     function createAgents() {
-      const deskPositions = [
-        { x: -12, z: -8 },
-        { x: -12, z: 0 },
-        { x: -12, z: 8 },
-        { x: 0, z: -8 },
-        { x: 0, z: 0 },
-        { x: 0, z: 8 },
-      ];
-
-      deskPositions.forEach((pos, i) => {
+      DESK_POSITIONS.forEach((pos, i) => {
         const agent = createAgent(i);
-        agent.position.set(pos.x, 0, pos.z + 1.5);
+        agent.position.set(pos.x, 0, pos.z+1.5);
         scene.add(agent);
         agents.push(agent);
       });
     }
 
     function createAgent(index) {
-      const agentGroup = new THREE.Group();
-      agentGroup.userData.agentIndex = index;
-
-      // Body (capsule = cylinder + two hemisphere caps, compatible with all Three.js versions)
-      const bodyMat = new THREE.MeshStandardMaterial({ color: 0x4a4a6a });
-      const bodyCyl = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.3, 0.6, 12), bodyMat);
-      bodyCyl.position.y = 0.9;
-      bodyCyl.castShadow = true;
-      agentGroup.add(bodyCyl);
-      const capGeo = new THREE.SphereGeometry(0.3, 12, 8);
-      const topCap = new THREE.Mesh(capGeo, bodyMat);
-      topCap.position.y = 1.2;
-      topCap.castShadow = true;
-      agentGroup.add(topCap);
-      const botCap = new THREE.Mesh(capGeo, bodyMat);
-      botCap.position.y = 0.6;
-      botCap.castShadow = true;
-      agentGroup.add(botCap);
-
-      // Head
-      const headGeom = new THREE.SphereGeometry(0.25, 16, 16);
-      const headMat = new THREE.MeshStandardMaterial({ color: 0xffcc99 });
-      const head = new THREE.Mesh(headGeom, headMat);
-      head.position.y = 1.55;
-      head.castShadow = true;
-      agentGroup.add(head);
-
-      // Status indicator (glowing ring)
-      const ringGeom = new THREE.TorusGeometry(0.4, 0.05, 8, 32);
-      const ringMat = new THREE.MeshStandardMaterial({
-        color: STATUS_COLORS.active,
-        emissive: STATUS_COLORS.active,
-        emissiveIntensity: 0.8,
-      });
-      const ring = new THREE.Mesh(ringGeom, ringMat);
-      ring.position.y = 0.1;
-      ring.rotation.x = Math.PI / 2;
-      agentGroup.add(ring);
-
-      agentGroup.userData.statusRing = ring;
-      agentGroup.userData.status = 'active';
-      agentGroup.userData.agentData = null;
-
-      return agentGroup;
+      const g = new THREE.Group();
+      g.userData.agentIndex = index;
+      const bodyMat = new THREE.MeshStandardMaterial({ color:0x4a4a6a });
+      const bodyCyl = new THREE.Mesh(new THREE.CylinderGeometry(0.3,0.3,0.6,12), bodyMat);
+      bodyCyl.position.y = 0.9; bodyCyl.castShadow = true; g.add(bodyCyl);
+      const capGeo = new THREE.SphereGeometry(0.3,12,8);
+      const topCap = new THREE.Mesh(capGeo, bodyMat); topCap.position.y = 1.2; topCap.castShadow = true; g.add(topCap);
+      const botCap = new THREE.Mesh(capGeo, bodyMat); botCap.position.y = 0.6; botCap.castShadow = true; g.add(botCap);
+      const head = new THREE.Mesh(new THREE.SphereGeometry(0.25,16,16), new THREE.MeshStandardMaterial({color:0xffcc99}));
+      head.position.y = 1.55; head.castShadow = true; g.add(head);
+      const ringMat = new THREE.MeshStandardMaterial({ color:STATUS_COLORS.active, emissive:STATUS_COLORS.active, emissiveIntensity:0.8 });
+      const ring = new THREE.Mesh(new THREE.TorusGeometry(0.4,0.05,8,32), ringMat);
+      ring.position.y = 0.1; ring.rotation.x = Math.PI/2; g.add(ring);
+      g.userData.statusRing = ring;
+      g.userData.status = 'active';
+      g.userData.agentData = null;
+      return g;
     }
 
-    function updateAgentStatus(agent, status, data = null) {
+    function updateAgentStatus(agent, status, data) {
       const ring = agent.userData.statusRing;
       const color = STATUS_COLORS[status] || STATUS_COLORS.idle;
-
       ring.material.color.setHex(color);
       ring.material.emissive.setHex(color);
       agent.userData.status = status;
       agent.userData.agentData = data;
-
-      // Also update behavior if we have a mapping from status
-      const behaviorMap = {
-        active: 'working',
-        idle: 'idle',
-        thinking: 'thinking',
-        error: 'panicking',
-      };
-      const idx = agent.userData.agentIndex;
-      if (idx !== undefined && behaviorMap[status]) {
-        setAgentBehavior(idx, behaviorMap[status]);
-      }
     }
 
     // ============================================================
-    // AMBIENT ANIMATIONS
+    // ANIMATIONS
     // ============================================================
     function updateAnimations(time) {
       // Monitor flicker
-      officeObjects.monitors.forEach((monitor, i) => {
-        if (monitor.userData.isMonitor && monitor.children[1]) {
-          const flicker = 0.8 + Math.sin(time * 2 + i) * 0.1 + Math.random() * 0.1;
-          monitor.children[1].material.emissiveIntensity = flicker;
+      officeObjects.monitors.forEach((mon, i) => {
+        if (mon.userData.isMonitor && mon.children[1]) {
+          const flicker = 0.8 + Math.sin(time*2+i)*0.1 + Math.random()*0.05;
+          mon.children[1].material.emissiveIntensity = flicker;
         }
       });
-
       // Plant sway
       officeObjects.plants.forEach((plant, i) => {
         if (plant.userData.isPlant) {
-          plant.rotation.z = Math.sin(time + i) * 0.02;
-          plant.rotation.x = Math.cos(time * 0.8 + i) * 0.015;
+          plant.rotation.z = Math.sin(time+i)*0.02;
+          plant.rotation.x = Math.cos(time*0.8+i)*0.015;
         }
       });
-
       // Lamp glow pulse
       officeObjects.lamps.forEach((lamp, i) => {
         if (lamp.userData.isLamp && lamp.children[2]) {
-          const pulse = 0.2 + Math.sin(time * 0.5 + i) * 0.1;
-          lamp.children[2].material.emissiveIntensity = pulse;
+          lamp.children[2].material.emissiveIntensity = 0.2 + Math.sin(time*0.5+i)*0.1;
         }
       });
-
-      // Server rack blink
-      scene.traverse((obj) => {
+      // Server blink
+      scene.traverse(obj => {
         if (obj.userData.blinkLight) {
-          const blink = Math.sin(time * 3 + obj.userData.blinkOffset) > 0;
-          obj.material.emissiveIntensity = blink ? 1 : 0.2;
+          obj.material.emissiveIntensity = Math.sin(time*3+obj.userData.blinkOffset) > 0 ? 1 : 0.2;
         }
       });
-
-      // Agent status ring + behavior-based body animations
+      // Agent ring animation
       agents.forEach((agent, i) => {
         const ring = agent.userData.statusRing;
-        const ab = agentBehaviors[i];
-        if (!ring) return;
-
-        ring.rotation.z = time * 0.5 + i;
-        const pulse = 0.6 + Math.sin(time * 2 + i) * 0.4;
-        ring.material.emissiveIntensity = pulse;
-
-        // Behavior-specific animations on the agent group
-        if (ab) {
-          const behavior = ab.behavior;
-
-          if (behavior === 'thinking' || behavior === 'researching') {
-            // Head tilt (rotate body slightly)
-            agent.rotation.z = Math.sin(time * 1.5 + i) * 0.08;
-          } else if (behavior === 'panicking' || behavior === 'overloaded') {
-            // Shake animation
-            agent.position.x += (Math.random() - 0.5) * 0.04;
-            agent.rotation.z = Math.sin(time * 8 + i) * 0.15;
-          } else if (behavior === 'dead') {
-            // Slump
-            agent.rotation.x = 0.3;
-            agent.position.y = -0.3;
-          } else if (behavior === 'sleeping' || behavior === 'napping') {
-            // Gentle breathing
-            const breathe = Math.sin(time * 1.2 + i) * 0.03;
-            if (agent.children[0]) agent.children[0].scale.y = 1 + breathe;
-          } else if (ab.walkProgress < 1) {
-            // Walking bob (already handled in updateAgentWalking, but add arm swing)
-            agent.rotation.x = Math.sin(time * 10) * 0.1;
-          } else {
-            // Reset to normal
-            agent.rotation.z *= 0.9;
-            agent.rotation.x *= 0.9;
-          }
+        if (ring) {
+          ring.rotation.z = time*0.5+i;
+          ring.material.emissiveIntensity = 0.6 + Math.sin(time*2+i)*0.4;
         }
       });
-
-      // Dust particles
-      updateDustParticles();
+      // Dust
+      if (!isHidden) updateDustParticles();
     }
 
     // ============================================================
+    // CAMERA INTRO SWEEP
     // ============================================================
-    // DASHBOARD PANELS — Live UI Updates
-    // ============================================================
-
-    // Panel toggle
-    function togglePanel(id) {
-      const el = document.getElementById(id);
-      if (el) el.classList.toggle('collapsed');
-    }
-
-    // --- 1. TOKEN PANEL ---
-    function updateTokenPanel(sessions) {
-      let totalInput = 0, totalOutput = 0, totalTokens = 0;
-      const modelCounts = {};
-
-      sessions.forEach(s => {
-        totalInput += s.inputTokens || 0;
-        totalOutput += s.outputTokens || 0;
-        totalTokens += s.totalTokens || 0;
-        const model = s.model || 'unknown';
-        modelCounts[model] = (modelCounts[model] || 0) + (s.totalTokens || 0);
-      });
-
-      // Estimated cost (average $0.004/1K tokens)
-      const cost = (totalTokens / 1000) * 0.004;
-
-      document.getElementById('tk-input').textContent = formatNum(totalInput);
-      document.getElementById('tk-output').textContent = formatNum(totalOutput);
-      document.getElementById('tk-total').textContent = formatNum(totalTokens);
-      document.getElementById('tk-cost').textContent = '$' + cost.toFixed(4);
-
-      // CSS bar chart (input vs output of total quota = 100K)
-      const quota = 100000;
-      const inputPct = Math.min((totalInput / quota) * 100, 100);
-      const outputPct = Math.min((totalOutput / quota) * 100, 100);
-      document.getElementById('tk-input-bar').style.width = inputPct + '%';
-      document.getElementById('tk-output-bar').style.width = outputPct + '%';
-
-      // Model breakdown
-      const breakdown = document.getElementById('model-breakdown');
-      const sorted = Object.entries(modelCounts).sort((a, b) => b[1] - a[1]);
-      const maxTokens = sorted.length > 0 ? sorted[0][1] : 1;
-      breakdown.innerHTML = sorted.slice(0, 5).map(([model, tokens]) => {
-        const pct = Math.round((tokens / maxTokens) * 100);
-        const short = model.length > 22 ? model.slice(0, 20) + '…' : model;
-        return `<div class="model-row">
-          <span class="model-name" title="${model}">${short}</span>
-          <span class="model-count">${formatNum(tokens)}</span>
-          <div class="model-bar"><div class="model-bar-fill" style="width:${pct}%"></div></div>
-        </div>`;
-      }).join('');
-    }
-
-    // --- 2. SESSION PANEL ---
-    function updateSessionPanel(sessions) {
-      const body = document.getElementById('session-list-body');
-      document.getElementById('session-count').textContent = ` (${sessions.length})`;
-
-      if (!sessions.length) {
-        body.innerHTML = '<div class="no-sessions">No active sessions</div>';
-        return;
-      }
-
-      body.innerHTML = sessions.slice(0, 10).map(s => {
-        const status = s.isActive ? 'active' : (s.aborted ? 'error' : s.behavior === 'thinking' ? 'thinking' : 'idle');
-        const age = formatAge(s.lastActivity || s.updatedAt);
-        const emoji = s.emoji || '🤖';
-        const name = escapeHtml(s.name || 'Agent');
-        const model = s.model || '';
-        const shortModel = model.length > 24 ? model.slice(0, 22) + '…' : model;
-        return `<div class="session-item ${status}-session" onclick="flyToAgent('${escapeHtml(s.key || s.id)}')" title="Click to fly to agent">
-          <div class="session-header">
-            <span class="session-emoji">${emoji}</span>
-            <span class="session-name">${name}</span>
-            <div class="status-dot ${status}"></div>
-          </div>
-          <div class="session-model">${shortModel}</div>
-          <div class="session-meta">
-            <span class="session-tokens">${formatNum(s.totalTokens || 0)} tok</span>
-            <span class="session-age">${age}</span>
-          </div>
-        </div>`;
-      }).join('');
-    }
-
-    // Fly camera to agent desk
-    function flyToAgent(sessionKey) {
-      // Find matching agent by session key or index
-      const idx = agents.findIndex(a => {
-        const d = a.userData.agentData;
-        return d && (d.key === sessionKey || d.id === sessionKey || d.name === sessionKey);
-      });
-      const target = idx >= 0 ? agents[idx] : agents[0];
-      if (!target) return;
-
-      // Desk positions (same as createAgents)
-      const deskMap = [
-        {x:-12,z:-8},{x:-12,z:0},{x:-12,z:8},
-        {x:0,z:-8},{x:0,z:0},{x:0,z:8},
-      ];
-      const di = target.userData.agentIndex || 0;
-      const pos = deskMap[di] || {x:0,z:0};
-
-      // Animate camera to desk
-      const startPos = camera.position.clone();
-      const startTarget = controls.target.clone();
-      const endPos = new THREE.Vector3(pos.x + 5, 12, pos.z + 10);
-      const endTarget = new THREE.Vector3(pos.x, 0, pos.z);
-      const duration = 1200;
+    function runCameraIntro() {
+      if (cameraIntroDone) return;
+      cameraIntroDone = true;
       const start = performance.now();
-
-      function flyAnim(now) {
-        const t = Math.min((now - start) / duration, 1);
-        const ease = 1 - Math.pow(1 - t, 3);
-        camera.position.lerpVectors(startPos, endPos, ease);
-        controls.target.lerpVectors(startTarget, endTarget, ease);
-        camera.updateProjectionMatrix();
-        if (t < 1) requestAnimationFrame(flyAnim);
+      const dur = 2500;
+      const sx = 80, sy = 80, sz = 80;
+      const ex = 30, ey = 30, ez = 30;
+      function tweenIntro(now) {
+        const t = Math.min((now - start)/dur, 1);
+        const ease = t < 0.5 ? 2*t*t : -1+(4-2*t)*t;
+        camera.position.x = sx+(ex-sx)*ease;
+        camera.position.y = sy+(ey-sy)*ease;
+        camera.position.z = sz+(ez-sz)*ease;
+        camera.lookAt(0, 0, 0);
+        controls.update();
+        if (t < 1) requestAnimationFrame(tweenIntro);
       }
-      requestAnimationFrame(flyAnim);
-
-      // Show agent panel
-      showAgentPanel(target);
+      requestAnimationFrame(tweenIntro);
     }
 
-    // --- 3. LIVE EVENT FEED ---
-    const eventFeed = [];
-    const MAX_EVENTS = 50;
-
-    function pushEvent(type, agent, text) {
-      const now = new Date();
-      const time = now.toLocaleTimeString('en-US', {hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false});
-      eventFeed.unshift({type, agent, text, time});
-      if (eventFeed.length > MAX_EVENTS) eventFeed.pop();
-      renderEventFeed();
-    }
-
-    function renderEventFeed() {
-      const body = document.getElementById('event-list-body');
-      document.getElementById('event-count').textContent = `(${eventFeed.length})`;
-      if (!eventFeed.length) {
-        body.innerHTML = '<div class="no-events">Waiting for events...</div>';
-        return;
-      }
-      const icons = {started:'▶',finished:'✓',tool:'⚙',error:'✗',thinking:'💭',message:'💬'};
-      body.innerHTML = eventFeed.slice(0, 30).map(e => `
-        <div class="event-item">
-          <span class="event-time">${e.time}</span>
-          <div class="event-badge ${e.type}">${icons[e.type] || '•'}</div>
-          <div class="event-body">
-            <span class="event-agent">${escapeHtml(e.agent)}</span>
-            <span class="event-text">${escapeHtml(e.text)}</span>
-          </div>
-        </div>`).join('');
-    }
-
-    // Infer event type from behavior/status
-    function inferEventType(session) {
-      if (session.aborted) return 'error';
-      const b = session.behavior;
-      if (b === 'thinking' || b === 'reasoning') return 'thinking';
-      if (b === 'tool_use' || session.currentToolName) return 'tool';
-      if (session.chatStatus === 'replying') return 'message';
-      return 'started';
-    }
-
-    // --- 4. HEALTH WIDGET ---
-    const startTime = Date.now();
-    let lastPing = Date.now();
-    let pingMs = -1;
-
-    function updateHealthWidget(sessions, connected) {
-      const activeCount = sessions.filter(s => s.isActive).length;
-      document.getElementById('health-sessions').textContent = sessions.length;
-      document.getElementById('health-agents').textContent = `${activeCount} / 6`;
-
-      // Ping display
-      if (connected && pingMs >= 0) {
-        document.getElementById('health-latency').textContent = pingMs + 'ms';
-        const dot = document.getElementById('health-dot');
-        dot.className = 'health-dot ' + (pingMs < 200 ? 'healthy' : pingMs < 1000 ? 'warn' : 'error');
-      } else {
-        document.getElementById('health-latency').textContent = '—';
-        document.getElementById('health-dot').className = 'health-dot warn';
-      }
-
-      // Clock
-      const now = new Date();
-      document.getElementById('health-time').textContent = now.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:true});
-
-      // Uptime
-      const upSec = Math.floor((Date.now() - startTime) / 1000);
-      const upStr = upSec < 3600 ? `${Math.floor(upSec/60)}m` : `${Math.floor(upSec/3600)}h ${Math.floor((upSec%3600)/60)}m`;
-      document.getElementById('health-uptime').textContent = `Uptime: ${upStr}`;
-    }
-
-    // --- 5. MINI MAP ---
-    // Map dot positions (% of map area, matching desk positions)
-    const MAP_POSITIONS = [
-      {x:24, y:27}, {x:42, y:27}, {x:60, y:27},
-      {x:24, y:60}, {x:42, y:60}, {x:60, y:60},
-    ];
-
-    function updateMiniMap(sessions) {
-      const dotsEl = document.getElementById('map-dots');
-      dotsEl.innerHTML = agents.map((agent, i) => {
-        const data = agent.userData.agentData || {};
-        const status = agent.userData.status || 'idle';
-        const pos = MAP_POSITIONS[i] || {x:50, y:50};
-        const name = escapeHtml(data.name || `Agent ${i+1}`);
-        return `<div class="map-agent-dot ${status}" style="left:${pos.x}%;top:${pos.y}%" onclick="flyToMapAgent(${i})" title="${name}"></div>`;
-      }).join('');
-    }
-
-    function flyToMapAgent(agentIndex) {
-      const target = agents[agentIndex];
-      if (target) {
-        const idx = target.userData.agentIndex || agentIndex;
-        const deskMap = [
-          {x:-12,z:-8},{x:-12,z:0},{x:-12,z:8},
-          {x:0,z:-8},{x:0,z:0},{x:0,z:8},
-        ];
-        const pos = deskMap[idx] || {x:0,z:0};
-        const startPos = camera.position.clone();
-        const startTarget = controls.target.clone();
-        const endPos = new THREE.Vector3(pos.x + 5, 12, pos.z + 10);
-        const endTarget = new THREE.Vector3(pos.x, 0, pos.z);
-        const duration = 1000;
-        const t0 = performance.now();
-        function anim(now) {
-          const t = Math.min((now-t0)/duration, 1);
-          const e = 1-Math.pow(1-t,3);
-          camera.position.lerpVectors(startPos, endPos, e);
-          controls.target.lerpVectors(startTarget, endTarget, e);
-          if (t < 1) requestAnimationFrame(anim);
-        }
-        requestAnimationFrame(anim);
-        showAgentPanel(target);
-      }
-    }
-
-    // Utility: format large numbers
-    function formatNum(n) {
-      if (n >= 1000000) return (n/1000000).toFixed(1)+'M';
-      if (n >= 1000) return (n/1000).toFixed(1)+'K';
-      return String(n);
-    }
-
-    // Utility: relative time
-    function formatAge(ts) {
-      if (!ts) return '—';
-      const diff = Date.now() - new Date(ts).getTime();
-      if (diff < 60000) return Math.floor(diff/1000)+'s ago';
-      if (diff < 3600000) return Math.floor(diff/60000)+'m ago';
-      return Math.floor(diff/3600000)+'h ago';
-    }
-
-    // Utility: escape HTML
-    function escapeHtml(s) {
-      if (!s) return '';
-      return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-    }
-
-    // Ping gateway for latency
-    async function pingGateway() {
-      const t0 = Date.now();
-      try {
-        const r = await fetch(CONFIG.gatewayUrl + '/api/sessions', {signal: AbortSignal.timeout(2000)});
-        if (r.ok) pingMs = Date.now() - t0;
-      } catch(_) { pingMs = -1; }
-    }
-    setInterval(pingGateway, 10000);
-    pingGateway();
-
-    // Update health widget every second
-    setInterval(() => {
-      const sessions = agents.map(a => ({
-        isActive: a.userData.status === 'active',
-        totalTokens: a.userData.agentData?.totalTokens || 0,
-        lastActivity: a.userData.agentData?.lastActivity,
-      }));
-      updateHealthWidget(sessions, !document.getElementById('connection-status').classList.contains('disconnected'));
-    }, 1000);
-
-
-    // GATEWAY INTEGRATION
+    // ============================================================
+    // GATEWAY POLLING
     // ============================================================
     async function pollGateway() {
-      // Try OpenClaw gateway first, fall back to demo agents
-      const urls = [
-        CONFIG.gatewayUrl + '/api/sessions',
-        CONFIG.dashboardApiUrl,
-      ];
+      const urls = [CONFIG.gatewayUrl+'/api/sessions', CONFIG.dashboardApiUrl];
       let ok = false;
       for (const url of urls) {
         try {
-          const response = await fetch(url, { signal: AbortSignal.timeout(3000) });
-          if (response.ok) {
-            const data = await response.json();
+          const resp = await fetch(url, { signal: AbortSignal.timeout(3000) });
+          if (resp.ok) {
+            const data = await resp.json();
             updateFromGateway(data);
             ok = true;
             break;
           }
-        } catch (_) {
-          // Try next URL
-        }
+        } catch(_) {}
       }
       if (!ok) {
-        // Silent fallback — demo agents already showing, just update status dot
         updateConnectionStatus(false);
         updateDemoAgents();
       }
@@ -2475,153 +1170,70 @@
 
     function updateFromGateway(data) {
       const sessions = data.sessions || [];
-      const activityEvents = [];
-      const seenAgents = new Set();
-
-      // Update each agent based on session data
-      agents.forEach((agent, i) => {
-        const session = sessions[i] || sessions[i % sessions.length];
-        
-        if (session) {
-          // Determine status
+      sessions.forEach((session, i) => {
+        if (i < agents.length) {
+          const agent = agents[i];
           let status = 'idle';
           if (session.isActive || session.behavior === 'tool_use') status = 'active';
           else if (session.behavior === 'thinking') status = 'thinking';
           else if (session.aborted) status = 'error';
-
           updateAgentStatus(agent, status, session);
-
-          // Add to activity feed
-          if (session.statusSummary) {
-            const eventType = inferEventType(session);
-            const agentKey = session.key || `agent-${i}`;
-            if (!seenAgents.has(agentKey)) {
-              seenAgents.add(agentKey);
-              pushEvent(eventType, session.name || `Agent ${i+1}`, session.statusSummary);
-            }
-            activityEvents.push({
-              agent: session.name || `Agent ${i + 1}`,
-              action: session.statusSummary,
-              time: new Date().toLocaleTimeString(),
-            });
-          }
         }
       });
-
-      // Update all dashboard panels
-      updateTokenPanel(sessions);
-      updateSessionPanel(sessions);
-      updateMiniMap(sessions);
-      updateHealthWidget(sessions, true);
-
-      // Update activity ticker
-      if (activityEvents.length > 0) {
-        updateTicker(activityEvents);
-      }
     }
 
     function updateDemoAgents() {
-      const statuses = ['active', 'idle', 'thinking', 'active', 'idle', 'active'];
-      const names = ['DuckBot', 'ResearchBot', 'CodeBot', 'TaskBot', 'MonitorBot', 'HelperBot'];
-      const models = ['bailian/qwen3.5-plus','bailian/glm-5','bailian/kimi-k2.5','bailian/MiniMax-M2.5','bailian/qwen3.5','bailian/glm-4.7'];
-      const tasks = [
-        'Processing incoming messages',
-        'Waiting for tasks',
-        'Analyzing code patterns',
-        'Running scheduled jobs',
-        'Monitoring system health',
-        'Assisting with queries'
-      ];
-
-      const demoSessions = [];
+      const statuses = ['active','idle','thinking','active','idle','active'];
+      const names = ['DuckBot','ResearchBot','CodeBot','TaskBot','MonitorBot','HelperBot'];
+      const tasks = ['Processing messages','Waiting for tasks','Analyzing patterns','Running scheduled jobs','Monitoring health','Assisting queries'];
       agents.forEach((agent, i) => {
-        const tokens = Math.floor(Math.random() * 80000 + 5000);
-        const sessionData = {
-          id: `demo-${i}`,
-          key: `demo:${i}`,
-          name: names[i],
-          emoji: ['🦆','🔬','💻','📋','📊','🆘'][i],
-          model: models[i],
-          inputTokens: Math.floor(tokens * 0.4),
-          outputTokens: Math.floor(tokens * 0.6),
-          totalTokens: tokens,
-          isActive: statuses[i] === 'active',
-          behavior: statuses[i] === 'thinking' ? 'thinking' : statuses[i] === 'active' ? 'tool_use' : 'idle',
-          aborted: false,
-          statusSummary: tasks[i],
-          lastActivity: Date.now() - Math.random() * 300000,
-        };
-        demoSessions.push(sessionData);
-        updateAgentStatus(agent, statuses[i], sessionData);
+        updateAgentStatus(agent, statuses[i], {
+          name: names[i], model: 'bailian/qwen3.5-plus',
+          tokens: Math.floor(Math.random()*50000), task: tasks[i],
+        });
       });
-
-      // Push a demo event occasionally
       if (Math.random() > 0.7) {
-        const ai = Math.floor(Math.random() * names.length);
-        const types = ['started','finished','tool','thinking','message'];
-        pushEvent(types[Math.floor(Math.random()*types.length)], names[ai], tasks[ai]);
-      }
-
-      // Update all dashboard panels with demo data
-      updateTokenPanel(demoSessions);
-      updateSessionPanel(demoSessions);
-      updateMiniMap(demoSessions);
-      updateHealthWidget(demoSessions, false);
-
-      // Demo activity ticker
-      if (Math.random() > 0.7) {
-        const events = [{
-          agent: names[Math.floor(Math.random() * names.length)],
-          action: tasks[Math.floor(Math.random() * tasks.length)],
-          time: new Date().toLocaleTimeString(),
-        }];
-        updateTicker(events);
+        const ev = { agent: names[Math.floor(Math.random()*names.length)], action: tasks[Math.floor(Math.random()*tasks.length)], time: new Date().toLocaleTimeString() };
+        updateTickerSingle(`${ev.agent}: ${ev.action}`);
       }
     }
 
     function updateConnectionStatus(connected) {
-      const statusEl = document.getElementById('connection-status');
-      const textEl = document.getElementById('status-text');
-      
+      const el = document.getElementById('connection-status');
+      const txt = document.getElementById('status-text');
+      if (!el || !txt) return;
       if (connected) {
-        statusEl.classList.remove('disconnected');
-        textEl.textContent = 'Live — Gateway Connected';
+        el.classList.remove('disconnected');
+        txt.textContent = 'Live — Gateway Connected';
       } else {
-        statusEl.classList.add('disconnected');
-        textEl.textContent = 'Demo Mode (Gateway Offline)';
+        el.classList.add('disconnected');
+        txt.textContent = 'Demo Mode (Gateway Offline)';
       }
     }
 
     // ============================================================
     // ACTIVITY TICKER
     // ============================================================
-    function updateTicker(events) {
-      const tickerContent = document.getElementById('ticker-content');
-      const messages = events.map(e => `🌐 ${e.agent}: ${e.action} (${e.time})`).join(' • ');
-      tickerContent.textContent = messages + ' • ' + tickerContent.textContent.split(' • ').slice(0, 3).join(' • ');
+    function updateTickerSingle(msg) {
+      tickerMessages.unshift(msg);
+      if (tickerMessages.length > 5) tickerMessages.pop();
+      const el = document.getElementById('ticker-scroll');
+      if (el) el.textContent = tickerMessages.join(' • ') + ' &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;';
     }
 
     // ============================================================
-    // AGENT INFO PANEL
+    // AGENT PANEL
     // ============================================================
     function onMouseClick(event) {
       const rect = renderer.domElement.getBoundingClientRect();
-      mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
-      mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
-
+      mouse.x = ((event.clientX - rect.left) / rect.width)*2-1;
+      mouse.y = -((event.clientY - rect.top) / rect.height)*2+1;
       raycaster.setFromCamera(mouse, camera);
-      const intersects = raycaster.intersectObjects(agents, true);
-
-      if (intersects.length > 0) {
-        // Find parent agent group
-        let obj = intersects[0].object;
-        while (obj.parent && !obj.userData.agentIndex && obj.userData.agentIndex !== 0) {
-          obj = obj.parent;
-        }
-        
-        if (obj.userData.agentIndex !== undefined) {
-          showAgentPanel(obj);
-        }
+      const hits = raycaster.intersectObjects(agents, true);
+      if (hits.length > 0) {
+        let obj = hits[0].object;
+        while (obj.parent && obj.userData.agentIndex === undefined) obj = obj.parent;
+        if (obj.userData.agentIndex !== undefined) showAgentPanel(obj);
       }
     }
 
@@ -2629,41 +1241,34 @@
       selectedAgent = agent;
       const panel = document.getElementById('agent-panel');
       const data = agent.userData.agentData || {};
-
-      document.getElementById('agent-name').textContent = data.name || `Agent ${agent.userData.agentIndex + 1}`;
+      document.getElementById('agent-name').textContent = data.agentName || data.name || `Agent ${agent.userData.agentIndex+1}`;
       document.getElementById('agent-emoji').textContent = data.emoji || '🤖';
-      
-      const statusBadge = document.getElementById('agent-status');
-      statusBadge.textContent = agent.userData.status.charAt(0).toUpperCase() + agent.userData.status.slice(1);
-      statusBadge.style.background = `#${STATUS_COLORS[agent.userData.status].toString(16).padStart(6, '0')}`;
-      statusBadge.style.color = '#fff';
-
+      const badge = document.getElementById('agent-status');
+      badge.textContent = (agent.userData.status||'active').charAt(0).toUpperCase()+(agent.userData.status||'active').slice(1);
+      const hex = '#'+(STATUS_COLORS[agent.userData.status]||0x00ff88).toString(16).padStart(6,'0');
+      badge.style.background = hex; badge.style.color = '#fff';
       document.getElementById('agent-model').textContent = data.model || '-';
       document.getElementById('agent-tokens').textContent = data.tokens ? data.tokens.toLocaleString() : '-';
-      document.getElementById('agent-task').textContent = data.task || data.statusSummary || '-';
-      document.getElementById('agent-activity').textContent = data.lastActivity ? new Date(data.lastActivity).toLocaleTimeString() : '-';
-
+      document.getElementById('agent-task').textContent = data.statusSummary || data.task || '-';
+      document.getElementById('agent-activity').textContent = data.lastRunId ? `Run: ${data.lastRunId.slice(0,8)}...` : '-';
       panel.classList.add('visible');
     }
 
     function closeAgentPanel() {
-      document.getElementById('agent-panel').classList.remove('visible');
+      const el = document.getElementById('agent-panel');
+      if (el) el.classList.remove('visible');
       selectedAgent = null;
     }
 
     // ============================================================
-    // EVENT HANDLERS
+    // RESIZE
     // ============================================================
     function onWindowResize() {
       const aspect = window.innerWidth / window.innerHeight;
-      const frustumSize = 50;
-      
-      camera.left = frustumSize * aspect / -2;
-      camera.right = frustumSize * aspect / 2;
-      camera.top = frustumSize / 2;
-      camera.bottom = frustumSize / -2;
+      const fSize = 50;
+      camera.left = fSize*aspect/-2; camera.right = fSize*aspect/2;
+      camera.top = fSize/2; camera.bottom = fSize/-2;
       camera.updateProjectionMatrix();
-      
       renderer.setSize(window.innerWidth, window.innerHeight);
     }
 
@@ -2673,38 +1278,38 @@
     }
 
     // ============================================================
-    // ANIMATION LOOP
+    // ANIMATION LOOP (performance-aware)
     // ============================================================
-    let lastFrameTime = performance.now();
-
-    function animate() {
+    function animate(timestamp) {
       requestAnimationFrame(animate);
+      // Frame rate throttling
+      const elapsed = timestamp - lastFrameTime;
+      const minTime = getMinFrameTime();
+      if (elapsed < minTime) return;
+      lastFrameTime = timestamp - (elapsed % minTime);
 
-      const now = performance.now();
-      const deltaMs = Math.min(now - lastFrameTime, 100); // cap at 100ms to avoid jumps
-      lastFrameTime = now;
-
-      const time = now * 0.001;
+      if (!cameraIntroDone && isFirstLoad) {
+        isFirstLoad = false;
+        runCameraIntro();
+      }
 
       controls.update();
-      updateAnimations(time);
+      updateAnimations(timestamp * 0.001);
       updateLighting();
-      updateAgentWalking(deltaMs);
-      updateParticles(deltaMs);
-
+      updateMiniMap();
       renderer.render(scene, camera);
     }
 
     // ============================================================
     // START
     // ============================================================
-    console.log("OFFICE: Starting init...");
+    console.log('OFFICE: Starting init...');
     try {
       init();
-      console.log("OFFICE: init() completed successfully");
+      console.log('OFFICE: init() completed successfully');
     } catch(e) {
-      console.error("OFFICE: init() failed:", e);
-      document.body.insertAdjacentHTML("beforeend", `<div style="position:fixed;top:0;left:0;background:#300;color:#fff;padding:20px;font-family:monospace;z-index:9999">ERROR: ${e.message}<pre>${e.stack}</pre></div>`);
+      console.error('OFFICE: init() failed:', e);
+      document.body.insertAdjacentHTML('beforeend', `<div style="position:fixed;top:0;left:0;background:#300;color:#fff;padding:20px;font-family:monospace;z-index:9999">ERROR: ${e.message}<pre>${e.stack}</pre></div>`);
     }
   </script>
 </body>
