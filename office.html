@@ -1,756 +1,529 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Duck Labs - Isometric Office</title>
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { 
-            overflow: hidden; 
-            background: #87ceeb;
-            font-family: 'Courier New', monospace;
-        }
-        #canvas { display: block; }
-        
-        /* UI Panels - Dark Glass Style */
-        .panel {
-            position: absolute;
-            background: rgba(10,10,30,0.9);
-            border: 1px solid rgba(100,150,255,0.25);
-            border-radius: 12px;
-            padding: 12px 16px;
-            color: #fff;
-            backdrop-filter: blur(10px);
-            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
-        }
-        
-        #clock-panel {
-            top: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            text-align: center;
-            min-width: 200px;
-        }
-        #clock {
-            font-size: 28px;
-            font-weight: bold;
-            color: #fff;
-            text-shadow: 0 0 10px rgba(100,150,255,0.5);
-        }
-        #date {
-            font-size: 14px;
-            color: rgba(255,255,255,0.7);
-            margin-top: 4px;
-        }
-        
-        #weather-panel {
-            top: 20px;
-            right: 20px;
-            cursor: pointer;
-            transition: transform 0.2s;
-        }
-        #weather-panel:hover {
-            transform: scale(1.02);
-        }
-        #weather-temp {
-            font-size: 24px;
-            font-weight: bold;
-        }
-        #weather-desc {
-            font-size: 12px;
-            color: rgba(255,255,255,0.7);
-            margin-top: 4px;
-        }
-        #weather-city {
-            font-size: 11px;
-            color: rgba(255,255,255,0.5);
-            margin-top: 2px;
-        }
-        
-        #agent-panel {
-            bottom: 20px;
-            left: 20px;
-            min-width: 250px;
-        }
-        #agent-count {
-            font-size: 18px;
-            font-weight: bold;
-            margin-bottom: 8px;
-        }
-        #session-list {
-            font-size: 12px;
-            color: rgba(255,255,255,0.8);
-            max-height: 150px;
-            overflow-y: auto;
-        }
-        .session-item {
-            padding: 4px 0;
-            border-bottom: 1px solid rgba(100,150,255,0.1);
-        }
-        
-        /* Scrollbar styling */
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-track { background: rgba(0,0,0,0.2); }
-        ::-webkit-scrollbar-thumb { background: rgba(100,150,255,0.3); border-radius: 3px; }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Agent Isometric Office</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { 
+      background: #0a0a0f; 
+      overflow: hidden; 
+      font-family: 'Courier New', monospace;
+    }
+    canvas { 
+      display: block; 
+      image-rendering: pixelated; 
+      image-rendering: crisp-edges;
+    }
+    .overlay-panel {
+      position: absolute;
+      background: rgba(10, 10, 15, 0.85);
+      border: 1px solid rgba(79, 195, 247, 0.3);
+      border-radius: 4px;
+      padding: 12px 16px;
+      color: #4FC3F7;
+      font-size: 12px;
+      backdrop-filter: blur(4px);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.5);
+    }
+    #clock-panel {
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      text-align: center;
+      min-width: 200px;
+    }
+    #clock-time {
+      font-size: 24px;
+      font-weight: bold;
+      color: #fff;
+    }
+    #clock-date {
+      font-size: 11px;
+      color: #888;
+      margin-top: 4px;
+    }
+    #weather-panel {
+      top: 20px;
+      right: 20px;
+      cursor: pointer;
+      min-width: 180px;
+    }
+    #weather-panel:hover {
+      border-color: rgba(79, 195, 247, 0.6);
+    }
+    #weather-temp {
+      font-size: 20px;
+      font-weight: bold;
+      color: #fff;
+    }
+    #weather-desc {
+      font-size: 11px;
+      color: #888;
+      margin-top: 4px;
+    }
+    #agent-panel {
+      bottom: 20px;
+      left: 20px;
+      min-width: 220px;
+      max-height: 200px;
+      overflow-y: auto;
+    }
+    #agent-panel h3 {
+      font-size: 11px;
+      color: #888;
+      margin-bottom: 8px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    .agent-item {
+      display: flex;
+      align-items: center;
+      padding: 4px 0;
+      font-size: 11px;
+    }
+    .agent-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      margin-right: 8px;
+      background: #4FC3F7;
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+    .agent-name {
+      color: #ccc;
+    }
+    .agent-status {
+      margin-left: auto;
+      color: #666;
+    }
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-track { background: rgba(0,0,0,0.3); }
+    ::-webkit-scrollbar-thumb { background: rgba(79, 195, 247, 0.3); border-radius: 2px; }
+  </style>
 </head>
 <body>
-    <canvas id="canvas"></canvas>
-    
-    <div id="clock-panel" class="panel">
-        <div id="clock">--:--:--</div>
-        <div id="date">Loading...</div>
-    </div>
-    
-    <div id="weather-panel" class="panel" onclick="editCity()">
-        <div id="weather-temp">--°F</div>
-        <div id="weather-desc">--</div>
-        <div id="weather-city">Click to set city</div>
-    </div>
-    
-    <div id="agent-panel" class="panel">
-        <div id="agent-count">🦆 Agents: <span id="agent-num">0</span></div>
-        <div id="session-list">Loading sessions...</div>
-    </div>
+  <canvas id="office"></canvas>
+  
+  <div id="clock-panel" class="overlay-panel">
+    <div id="clock-time">--:--:--</div>
+    <div id="clock-date">Loading...</div>
+  </div>
+  
+  <div id="weather-panel" class="overlay-panel" onclick="editCity()">
+    <div id="weather-temp">--°F</div>
+    <div id="weather-desc">Click to set city</div>
+  </div>
+  
+  <div id="agent-panel" class="overlay-panel">
+    <h3>Active Agents</h3>
+    <div id="agent-list">Loading...</div>
+  </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
-    <script>
-        // Globals
-        C = { u: "http://localhost:18790", p: 3000, n: 6 };
-        O = { monitors: [], plants: [], mugs: [], lamps: [], blinkLights: [], agents: [], desks: [], chairs: [] };
-        
-        // Scene setup
-        const scene = new THREE.Scene();
-        scene.background = new THREE.Color(0x87ceeb);
-        
-        const camera = new THREE.OrthographicCamera(-50, 50, 50, -50, 0.1, 1000);
-        camera.position.set(60, 60, 60);
-        camera.lookAt(0, 0, 0);
-        
-        const renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('canvas'), antialias: true });
-        renderer.setSize(window.innerWidth, window.innerHeight);
-        renderer.setPixelRatio(window.devicePixelRatio);
-        
-        const controls = new THREE.OrbitControls(camera, renderer.domElement);
-        controls.enableDamping = true;
-        controls.dampingFactor = 0.05;
-        controls.autoRotate = false;
-        controls.autoRotateSpeed = 0.5;
-        
-        // Lighting
-        const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
-        scene.add(ambientLight);
-        
-        const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
-        dirLight.position.set(50, 100, 50);
-        dirLight.castShadow = true;
-        scene.add(dirLight);
-        
-        // Helper functions
-        function vx(w, h, d, c, opts = {}) {
-            const geom = new THREE.BoxGeometry(w, h, d);
-            const mat = new THREE.MeshLambertMaterial({ color: c, ...opts });
-            return new THREE.Mesh(geom, mat);
+  <script>
+    const canvas = document.getElementById('office');
+    const ctx = canvas.getContext('2d');
+    
+    // Isometric constants
+    const TILE_W = 48;
+    const TILE_H = 24;
+    let MAP_OFFSET_X = canvas.width / 2;
+    const MAP_OFFSET_Y = 80;
+    const COLS = 19;
+    const ROWS = 14;
+    
+    // Resize handler
+    function resize() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+      MAP_OFFSET_X = canvas.width / 2;
+    }
+    window.addEventListener('resize', resize);
+    resize();
+    
+    // Grid to screen conversion
+    function g2s(col, row) {
+      return {
+        x: MAP_OFFSET_X + (col - row) * (TILE_W / 2),
+        y: MAP_OFFSET_Y + (col + row) * (TILE_H / 2)
+      };
+    }
+    
+    // Draw isometric tile
+    function drawIsoTile(ctx, col, row, color) {
+      var p = g2s(col, row);
+      ctx.beginPath();
+      ctx.moveTo(p.x, p.y - TILE_H / 2);
+      ctx.lineTo(p.x + TILE_W / 2, p.y);
+      ctx.lineTo(p.x, p.y + TILE_H / 2);
+      ctx.lineTo(p.x - TILE_W / 2, p.y);
+      ctx.closePath();
+      ctx.fillStyle = color;
+      ctx.fill();
+    }
+    
+    // Draw isometric block (3D cube)
+    function drawIsoBlock(ctx, col, row, h, topC, leftC, rightC) {
+      var p = g2s(col, row);
+      // Top
+      ctx.beginPath();
+      ctx.moveTo(p.x, p.y - TILE_H / 2 - h);
+      ctx.lineTo(p.x + TILE_W / 2, p.y - h);
+      ctx.lineTo(p.x, p.y + TILE_H / 2 - h);
+      ctx.lineTo(p.x - TILE_W / 2, p.y - h);
+      ctx.closePath();
+      ctx.fillStyle = topC;
+      ctx.fill();
+      // Left
+      ctx.beginPath();
+      ctx.moveTo(p.x - TILE_W / 2, p.y - h);
+      ctx.lineTo(p.x, p.y + TILE_H / 2 - h);
+      ctx.lineTo(p.x, p.y + TILE_H / 2);
+      ctx.lineTo(p.x - TILE_W / 2, p.y);
+      ctx.closePath();
+      ctx.fillStyle = leftC;
+      ctx.fill();
+      // Right
+      ctx.beginPath();
+      ctx.moveTo(p.x + TILE_W / 2, p.y - h);
+      ctx.lineTo(p.x, p.y + TILE_H / 2 - h);
+      ctx.lineTo(p.x, p.y + TILE_H / 2);
+      ctx.lineTo(p.x + TILE_W / 2, p.y);
+      ctx.closePath();
+      ctx.fillStyle = rightC;
+      ctx.fill();
+    }
+    
+    // Pixel rect helper
+    function px(ctx, x, y, w, h, c) {
+      ctx.fillStyle = c;
+      ctx.fillRect(Math.round(x), Math.round(y), w, h);
+    }
+    
+    // Draw floor
+    function drawFloor() {
+      for (let col = 0; col < COLS; col++) {
+        for (let row = 0; row < ROWS; row++) {
+          const color = (col + row) % 2 === 0 ? '#C4A882' : '#B0956E';
+          drawIsoTile(ctx, col, row, color);
         }
-        
-        function add(g, ...meshes) {
-            meshes.forEach(m => g.add(m));
-            return g;
+      }
+    }
+    
+    // Draw desk
+    function drawDesk(ctx, col, row, tick) {
+      drawIsoBlock(ctx, col, row, 14, '#8D6E63', '#6D4C41', '#5D4037');
+      // Monitor on desk
+      var p = g2s(col, row);
+      px(ctx, p.x - 6, p.y - 20, 12, 10, '#333');
+      px(ctx, p.x - 4, p.y - 18, 8, 6, '#4FC3F7');
+    }
+    
+    // Draw chair
+    function drawChair(ctx, col, row) {
+      var p = g2s(col, row);
+      px(ctx, p.x - 5, p.y - 8, 10, 2, '#555');
+      px(ctx, p.x - 2, p.y - 6, 4, 8, '#444');
+      px(ctx, p.x - 6, p.y - 12, 2, 6, '#444');
+    }
+    
+    // Draw monitor
+    function drawMonitor(ctx, col, row, tick) {
+      var p = g2s(col, row);
+      // Frame
+      px(ctx, p.x - 8, p.y - 25, 16, 14, '#222');
+      // Screen glow
+      px(ctx, p.x - 6, p.y - 23, 12, 10, '#4FC3F7');
+      // Code lines
+      if (Math.floor(tick / 30) % 2 === 0) {
+        px(ctx, p.x - 4, p.y - 21, 8, 1, '#fff');
+        px(ctx, p.x - 4, p.y - 18, 6, 1, '#fff');
+        px(ctx, p.x - 4, p.y - 15, 7, 1, '#fff');
+      }
+      // Stand
+      px(ctx, p.x - 3, p.y - 11, 6, 4, '#444');
+      px(ctx, p.x - 5, p.y - 7, 10, 2, '#444');
+    }
+    
+    // Draw plant
+    function drawPlant(ctx, col, row, tick) {
+      var p = g2s(col, row);
+      // Pot
+      px(ctx, p.x - 5, p.y - 10, 10, 8, '#D84315');
+      px(ctx, p.x - 4, p.y - 9, 8, 6, '#F57C00');
+      // Leaves (swaying)
+      var sway = Math.sin(tick * 0.08) * 2;
+      px(ctx, p.x - 6 + sway, p.y - 18, 4, 8, '#2E7D32');
+      px(ctx, p.x + 2 + sway, p.y - 16, 4, 7, '#388E3C');
+      px(ctx, p.x - 2 + sway, p.y - 20, 4, 6, '#43A047');
+    }
+    
+    // Draw bookshelf
+    function drawBookshelf(ctx, col, row) {
+      var p = g2s(col, row);
+      // Frame
+      px(ctx, p.x - 10, p.y - 30, 20, 28, '#4E342E');
+      px(ctx, p.x - 9, p.y - 29, 18, 26, '#5D4037');
+      // Shelves
+      px(ctx, p.x - 9, p.y - 20, 18, 2, '#3E2723');
+      px(ctx, p.x - 9, p.y - 10, 18, 2, '#3E2723');
+      // Books (colored)
+      px(ctx, p.x - 8, p.y - 18, 3, 8, '#E53935');
+      px(ctx, p.x - 4, p.y - 18, 3, 8, '#1E88E5');
+      px(ctx, p.x, p.y - 18, 3, 8, '#43A047');
+      px(ctx, p.x + 4, p.y - 18, 3, 8, '#FB8C00');
+      px(ctx, p.x - 8, p.y - 8, 3, 8, '#8E24AA');
+      px(ctx, p.x - 4, p.y - 8, 3, 8, '#00ACC1');
+      px(ctx, p.x, p.y - 8, 4, 8, '#FDD835');
+    }
+    
+    // Draw whiteboard
+    function drawWhiteboard(ctx, col, row, tick) {
+      var p = g2s(col, row);
+      // Frame
+      px(ctx, p.x - 12, p.y - 25, 24, 20, '#555');
+      // Board
+      px(ctx, p.x - 11, p.y - 24, 22, 18, '#fff');
+      // Diagram (blue)
+      px(ctx, p.x - 8, p.y - 20, 16, 1, '#2196F3');
+      px(ctx, p.x - 8, p.y - 16, 16, 1, '#2196F3');
+      px(ctx, p.x - 8, p.y - 12, 16, 1, '#2196F3');
+      // Red dot (animated)
+      if (Math.floor(tick / 20) % 2 === 0) {
+        px(ctx, p.x + 6, p.y - 18, 3, 3, '#F44336');
+      }
+    }
+    
+    // Draw sofa
+    function drawSofa(ctx, col, row) {
+      var p = g2s(col, row);
+      // Seat
+      px(ctx, p.x - 14, p.y - 8, 28, 10, '#5C6BC0');
+      // Back
+      px(ctx, p.x - 14, p.y - 18, 28, 10, '#3F51B5');
+      // Armrests
+      px(ctx, p.x - 16, p.y - 8, 4, 10, '#3949AB');
+      px(ctx, p.x + 12, p.y - 8, 4, 10, '#3949AB');
+    }
+    
+    // Draw coffee table
+    function drawCoffeeTable(ctx, col, row) {
+      var p = g2s(col, row);
+      drawIsoBlock(ctx, col, row, 8, '#6D4C41', '#5D4037', '#4E342E');
+      // Magazine
+      px(ctx, p.x - 6, p.y - 12, 12, 1, '#E53935');
+      px(ctx, p.x - 6, p.y - 10, 12, 1, '#fff');
+      // Cup
+      px(ctx, p.x + 4, p.y - 10, 4, 4, '#fff');
+    }
+    
+    // Draw coffee machine
+    function drawCoffeeMachine(ctx, col, row, tick) {
+      var p = g2s(col, row);
+      // Body
+      px(ctx, p.x - 8, p.y - 20, 16, 18, '#424242');
+      px(ctx, p.x - 7, p.y - 19, 14, 16, '#616161');
+      // Blinking light
+      if (Math.floor(tick / 15) % 2 === 0) {
+        px(ctx, p.x - 4, p.y - 16, 3, 3, '#4CAF50');
+      } else {
+        px(ctx, p.x - 4, p.y - 16, 3, 3, '#2E7D32');
+      }
+      // Steam particles
+      if (tick % 30 < 15) {
+        px(ctx, p.x - 2, p.y - 24, 2, 4, 'rgba(255,255,255,0.5)');
+        px(ctx, p.x + 2, p.y - 26, 2, 4, 'rgba(255,255,255,0.3)');
+      }
+    }
+    
+    // Draw server rack
+    function drawServerRack(ctx, col, row, tick) {
+      var p = g2s(col, row);
+      // Body
+      px(ctx, p.x - 10, p.y - 35, 20, 33, '#212121');
+      px(ctx, p.x - 9, p.y - 34, 18, 31, '#424242');
+      // Server units (4)
+      for (let i = 0; i < 4; i++) {
+        let sy = p.y - 30 + i * 7;
+        px(ctx, p.x - 8, sy, 16, 5, '#333');
+        // Blinking LEDs
+        if ((tick + i * 5) % 20 < 10) {
+          px(ctx, p.x - 6, sy + 1, 2, 2, '#4CAF50');
+          px(ctx, p.x - 2, sy + 1, 2, 2, '#2196F3');
+        } else {
+          px(ctx, p.x - 6, sy + 1, 2, 2, '#1B5E20');
+          px(ctx, p.x - 2, sy + 1, 2, 2, '#0D47A1');
         }
-        
-        function L(g) {
-            return g.children[g.children.length - 1];
+      }
+    }
+    
+    // Draw rug
+    function drawRug(ctx, col, row) {
+      var p = g2s(col, row);
+      ctx.beginPath();
+      ctx.moveTo(p.x, p.y - TILE_H / 2 + 2);
+      ctx.lineTo(p.x + TILE_W / 2 - 2, p.y);
+      ctx.lineTo(p.x, p.y + TILE_H / 2 - 2);
+      ctx.lineTo(p.x - TILE_W / 2 + 2, p.y);
+      ctx.closePath();
+      ctx.fillStyle = 'rgba(156, 39, 176, 0.4)';
+      ctx.fill();
+    }
+    
+    // Draw agent
+    function drawAgent(ctx, col, row, tick, color) {
+      var p = g2s(col, row);
+      var sway = Math.sin(tick * 0.05) * 1;
+      var by = p.y + sway;
+      // Body
+      px(ctx, p.x - 8, by - 20, 16, 16, color);
+      // Head
+      px(ctx, p.x - 6, by - 30, 12, 12, 0xffcc88);
+      // Eyes
+      px(ctx, p.x - 3, by - 27, 2, 2, 0x222222);
+      px(ctx, p.x + 1, by - 27, 2, 2, 0x222222);
+      // Legs
+      px(ctx, p.x - 6, by - 4, 4, 6, 0x334455);
+      px(ctx, p.x + 2, by - 4, 4, 6, 0x334455);
+    }
+    
+    // Weather state
+    let weatherCity = '45424';
+    let weatherData = { temp: '--', desc: 'Loading...' };
+    
+    // Fetch weather
+    async function fetchWeather() {
+      try {
+        const res = await fetch('https://wttr.in/' + weatherCity + '?format=j1');
+        const data = await res.json();
+        if (data.current_condition) {
+          weatherData.temp = Math.round(data.current_condition[0].temp_F);
+          weatherData.desc = data.current_condition[0].weatherDesc[0].value;
+          document.getElementById('weather-temp').textContent = weatherData.temp + '°F';
+          document.getElementById('weather-desc').textContent = weatherData.desc;
         }
-        
-        // Material colors
-        const COLORS = {
-            wall: 0xD4C5B0,
-            floor: 0x8B7355,
-            plant: 0x4A7C59,
-            desk: 0x6B5340,
-            chair: 0x3a3a3a,
-            monitor: 0x2a2a2a,
-            monitorScreen: 0x4a90d9,
-            lamp: 0xffd700,
-            mug: 0xffffff,
-            rug: 0x8B4513,
-            cabinet: 0x5C4033,
-            counter: 0x8B7355,
-            couch: 0x4A7C59,
-            table: 0x6B5340,
-            whiteboard: 0xffffff,
-            server: 0x2a2a2a,
-            serverLed: 0x00ff00
-        };
-        
-        // Factory functions
-        function mkDesk() {
-            const g = new THREE.Group();
-            const top = vx(8, 0.5, 5, COLORS.desk);
-            top.position.y = 3;
-            const leg1 = vx(0.5, 3, 0.5, COLORS.desk);
-            leg1.position.set(-3.5, 1.5, -2);
-            const leg2 = vx(0.5, 3, 0.5, COLORS.desk);
-            leg2.position.set(3.5, 1.5, -2);
-            const leg3 = vx(0.5, 3, 0.5, COLORS.desk);
-            leg3.position.set(-3.5, 1.5, 2);
-            const leg4 = vx(0.5, 3, 0.5, COLORS.desk);
-            leg4.position.set(3.5, 1.5, 2);
-            add(g, top, leg1, leg2, leg3, leg4);
-            return g;
-        }
-        
-        function mkChair() {
-            const g = new THREE.Group();
-            const seat = vx(3, 0.3, 3, COLORS.chair);
-            seat.position.y = 2;
-            const back = vx(3, 2, 0.3, COLORS.chair);
-            back.position.set(0, 3, -1.35);
-            const leg1 = vx(0.3, 2, 0.3, COLORS.chair);
-            leg1.position.set(-1.35, 1, -1.35);
-            const leg2 = vx(0.3, 2, 0.3, COLORS.chair);
-            leg2.position.set(1.35, 1, -1.35);
-            const leg3 = vx(0.3, 2, 0.3, COLORS.chair);
-            leg3.position.set(-1.35, 1, 1.35);
-            const leg4 = vx(0.3, 2, 0.3, COLORS.chair);
-            leg4.position.set(1.35, 1, 1.35);
-            add(g, seat, back, leg1, leg2, leg3, leg4);
-            return g;
-        }
-        
-        function mkMonitor() {
-            const g = new THREE.Group();
-            const screen = vx(3, 2, 0.2, COLORS.monitor);
-            screen.position.y = 4.5;
-            const screenGlow = vx(2.8, 1.8, 0.21, COLORS.monitorScreen);
-            screenGlow.position.y = 4.5;
-            screenGlow.material = new THREE.MeshBasicMaterial({ color: COLORS.monitorScreen, emissive: COLORS.monitorScreen, emissiveIntensity: 0.3 });
-            const stand = vx(0.3, 1.5, 0.3, COLORS.monitor);
-            stand.position.y = 3;
-            const base = vx(1.5, 0.2, 1, COLORS.monitor);
-            base.position.y = 2.1;
-            add(g, screen, screenGlow, stand, base);
-            O.monitors.push(screenGlow);
-            return g;
-        }
-        
-        function mkPlant() {
-            const g = new THREE.Group();
-            const pot = vx(1.5, 1.5, 1.5, 0x8B4513);
-            pot.position.y = 0.75;
-            const leaves1 = vx(1, 1, 1, COLORS.plant);
-            leaves1.position.y = 2;
-            const leaves2 = vx(0.8, 0.8, 0.8, COLORS.plant);
-            leaves2.position.set(0.5, 2.5, 0.3);
-            const leaves3 = vx(0.8, 0.8, 0.8, COLORS.plant);
-            leaves3.position.set(-0.5, 2.3, -0.3);
-            add(g, pot, leaves1, leaves2, leaves3);
-            g.userData.phase = Math.random() * Math.PI * 2;
-            O.plants.push(g);
-            return g;
-        }
-        
-        function mkMug() {
-            const g = new THREE.Group();
-            const mug = vx(0.8, 1, 0.8, COLORS.mug);
-            mug.position.y = 0.5;
-            const handle = vx(0.2, 0.6, 0.5, COLORS.mug);
-            handle.position.set(0.5, 0.5, 0);
-            add(g, mug, handle);
-            O.mugs.push(g);
-            return g;
-        }
-        
-        function mkAgent(color = 0xff6b6b) {
-            const g = new THREE.Group();
-            const body = vx(1.5, 2, 1, color);
-            body.position.y = 1;
-            const head = vx(1.2, 1.2, 1.2, color);
-            head.position.y = 2.6;
-            const eyes = vx(0.3, 0.3, 0.2, 0xffffff);
-            eyes.position.set(0.3, 2.7, 0.6);
-            const eyes2 = vx(0.3, 0.3, 0.2, 0xffffff);
-            eyes2.position.set(-0.3, 2.7, 0.6);
-            add(g, body, head, eyes, eyes2);
-            g.userData.phase = Math.random() * Math.PI * 2;
-            O.agents.push(g);
-            return g;
-        }
-        
-        function mkRug(w, d, c) {
-            const rug = vx(w, 0.1, d, c);
-            return rug;
-        }
-        
-        function mkBookshelf() {
-            const g = new THREE.Group();
-            const frame = vx(6, 8, 1.5, COLORS.cabinet);
-            frame.position.y = 4;
-            const shelf1 = vx(5.5, 0.2, 1.3, COLORS.cabinet);
-            shelf1.position.set(0, 2, 0);
-            const shelf2 = vx(5.5, 0.2, 1.3, COLORS.cabinet);
-            shelf2.position.set(0, 4, 0);
-            const shelf3 = vx(5.5, 0.2, 1.3, COLORS.cabinet);
-            shelf3.position.set(0, 6, 0);
-            add(g, frame, shelf1, shelf2, shelf3);
-            return g;
-        }
-        
-        function mkCouch() {
-            const g = new THREE.Group();
-            const base = vx(8, 1.5, 3, COLORS.couch);
-            base.position.y = 0.75;
-            const back = vx(8, 3, 1, COLORS.couch);
-            back.position.set(0, 2.25, -1);
-            const arm1 = vx(1, 2, 3, COLORS.couch);
-            arm1.position.set(-3.5, 1, 0);
-            const arm2 = vx(1, 2, 3, COLORS.couch);
-            arm2.position.set(3.5, 1, 0);
-            add(g, base, back, arm1, arm2);
-            return g;
-        }
-        
-        function mkCoffeeTable() {
-            const g = new THREE.Group();
-            const top = vx(5, 0.3, 3, COLORS.table);
-            top.position.y = 1.5;
-            const leg1 = vx(0.3, 1.5, 0.3, COLORS.table);
-            leg1.position.set(-2, 0.75, -1);
-            const leg2 = vx(0.3, 1.5, 0.3, COLORS.table);
-            leg2.position.set(2, 0.75, -1);
-            const leg3 = vx(0.3, 1.5, 0.3, COLORS.table);
-            leg3.position.set(-2, 0.75, 1);
-            const leg4 = vx(0.3, 1.5, 0.3, COLORS.table);
-            leg4.position.set(2, 0.75, 1);
-            add(g, top, leg1, leg2, leg3, leg4);
-            return g;
-        }
-        
-        function mkTree(h) {
-            const g = new THREE.Group();
-            const trunk = vx(1, h * 0.4, 1, 0x5C4033);
-            trunk.position.y = h * 0.2;
-            const leaves1 = vx(3, 2, 3, COLORS.plant);
-            leaves1.position.y = h * 0.5;
-            const leaves2 = vx(2.5, 1.5, 2.5, COLORS.plant);
-            leaves2.position.y = h * 0.7;
-            const leaves3 = vx(2, 1, 2, COLORS.plant);
-            leaves3.position.y = h * 0.85;
-            add(g, trunk, leaves1, leaves2, leaves3);
-            g.userData.phase = Math.random() * Math.PI * 2;
-            O.plants.push(g);
-            return g;
-        }
-        
-        function mkCeilingLight() {
-            const g = new THREE.Group();
-            const fixture = vx(2, 0.3, 2, 0x888888);
-            fixture.position.y = 0.15;
-            const bulb = vx(1.5, 0.5, 1.5, 0xffffcc);
-            bulb.position.y = -0.2;
-            bulb.material = new THREE.MeshBasicMaterial({ color: 0xffffcc, emissive: 0xffffcc, emissiveIntensity: 0.5 });
-            add(g, fixture, bulb);
-            O.blinkLights.push(bulb);
-            return g;
-        }
-        
-        function mkWhiteboard() {
-            const g = new THREE.Group();
-            const board = vx(8, 4, 0.2, COLORS.whiteboard);
-            board.position.y = 3;
-            const frame = vx(8.4, 4.4, 0.1, 0x333333);
-            frame.position.y = 3;
-            const tray = vx(8, 0.3, 0.3, 0x333333);
-            tray.position.set(0, 0.85, 0.15);
-            add(g, board, frame, tray);
-            return g;
-        }
-        
-        function mkKitchenCounter() {
-            const g = new THREE.Group();
-            const counter = vx(12, 3, 4, COLORS.counter);
-            counter.position.y = 1.5;
-            const cabinet1 = vx(3, 2.8, 3.8, COLORS.cabinet);
-            cabinet1.position.set(-4, 1.4, 0);
-            const cabinet2 = vx(3, 2.8, 3.8, COLORS.cabinet);
-            cabinet2.position.set(4, 1.4, 0);
-            const sink = vx(2, 0.5, 1.5, 0x888888);
-            sink.position.set(0, 2.9, 0);
-            const coffee = vx(1.5, 2, 1.5, 0x2a2a2a);
-            coffee.position.set(6, 2.5, 0);
-            add(g, counter, cabinet1, cabinet2, sink, coffee);
-            return g;
-        }
-        
-        function mkServerRack() {
-            const g = new THREE.Group();
-            const frame = vx(4, 10, 3, COLORS.server);
-            frame.position.y = 5;
-            for (let i = 0; i < 8; i++) {
-                const server = vx(3.8, 1, 2.8, 0x333333);
-                server.position.set(0, 1 + i * 1.2, 0);
-                const led = vx(0.3, 0.2, 0.1, COLORS.serverLed);
-                led.position.set(1.5, 1 + i * 1.2, 1.5);
-                led.material = new THREE.MeshBasicMaterial({ color: COLORS.serverLed, emissive: COLORS.serverLed, emissiveIntensity: 0.8 });
-                add(g, server, led);
-                O.blinkLights.push(led);
-            }
-            return g;
-        }
-        
-        // Build the office
-        function buildOffice() {
-            // Floor
-            const floor = vx(80, 1, 80, COLORS.floor);
-            scene.add(floor);
-            
-            // Main Office Room
-            const mainOffice = new THREE.Group();
-            mainOffice.position.set(0, 0, 0);
-            
-            // Walls
-            const backWall = vx(40, 12, 1, COLORS.wall);
-            backWall.position.set(0, 6, -20);
-            const leftWall = vx(1, 12, 40, COLORS.wall);
-            leftWall.position.set(-20, 6, 0);
-            const rightWall = vx(1, 12, 40, COLORS.wall);
-            rightWall.position.set(20, 6, 0);
-            const frontWall = vx(40, 12, 1, COLORS.wall);
-            frontWall.position.set(0, 6, 20);
-            add(mainOffice, backWall, leftWall, rightWall, frontWall);
-            
-            // Rug under desks
-            const rug = mkRug(25, 15, COLORS.rug);
-            rug.position.set(0, 0.15, 0);
-            mainOffice.add(rug);
-            
-            // Desks in 2 rows of 3
-            const deskPositions = [
-                [-10, 0, -5], [0, 0, -5], [10, 0, -5],
-                [-10, 0, 8], [0, 0, 8], [10, 0, 8]
-            ];
-            
-            deskPositions.forEach((pos, i) => {
-                const desk = mkDesk();
-                desk.position.set(...pos);
-                mainOffice.add(desk);
-                O.desks.push(desk);
-                
-                const monitor = mkMonitor();
-                monitor.position.set(0, 3.1, -1);
-                desk.add(monitor);
-                
-                const chair = mkChair();
-                chair.position.set(0, 0, 3);
-                mainOffice.add(chair);
-                O.chairs.push(chair);
-                
-                // Plant every other desk
-                if (i % 2 === 0) {
-                    const plant = mkPlant();
-                    plant.position.set(4, 0.1, -2);
-                    desk.add(plant);
-                    
-                    const mug = mkMug();
-                    mug.position.set(-3, 3.2, 1);
-                    desk.add(mug);
-                }
-                
-                // Lamp on each desk
-                const lamp = mkCeilingLight();
-                lamp.scale.set(0.5, 0.5, 0.5);
-                lamp.position.set(0, 6, 0);
-                desk.add(lamp);
-            });
-            
-            // Agents at desks (3-4 agents)
-            const agentColors = [0xff6b6b, 0x4ecdc4, 0x45b7d1, 0xf7b731];
-            for (let i = 0; i < 4; i++) {
-                const agent = mkAgent(agentColors[i]);
-                agent.position.set(deskPositions[i][0], 0, deskPositions[i][1] + 2);
-                mainOffice.add(agent);
-            }
-            
-            // Whiteboard on wall
-            const wb1 = mkWhiteboard();
-            wb1.position.set(0, 0.1, -19.5);
-            wb1.rotation.y = Math.PI;
-            mainOffice.add(wb1);
-            
-            // Bookshelf
-            const bookshelf = mkBookshelf();
-            bookshelf.position.set(-19, 0.1, 10);
-            bookshelf.rotation.y = Math.PI / 2;
-            mainOffice.add(bookshelf);
-            
-            // Ceiling lights
-            for (let x = -15; x <= 15; x += 10) {
-                for (let z = -15; z <= 15; z += 10) {
-                    const light = mkCeilingLight();
-                    light.position.set(x, 11, z);
-                    mainOffice.add(light);
-                }
-            }
-            
-            scene.add(mainOffice);
-            
-            // Kitchen (right side)
-            const kitchen = new THREE.Group();
-            kitchen.position.set(35, 0, -10);
-            
-            const kFloor = vx(20, 1, 15, COLORS.floor);
-            kitchen.add(kFloor);
-            
-            const kCounter = mkKitchenCounter();
-            kCounter.position.set(0, 0.1, -5);
-            kitchen.add(kCounter);
-            
-            const kTable = vx(6, 2.5, 4, COLORS.table);
-            kTable.position.set(-5, 1.25, 3);
-            kitchen.add(kTable);
-            
-            for (let i = 0; i < 4; i++) {
-                const kChair = mkChair();
-                const angle = (i / 4) * Math.PI * 2;
-                kChair.position.set(Math.cos(angle) * 4, 0, 3 + Math.sin(angle) * 2);
-                kChair.rotation.y = -angle;
-                kitchen.add(kChair);
-            }
-            
-            const kLight = mkCeilingLight();
-            kLight.position.set(-5, 11, 3);
-            kitchen.add(kLight);
-            
-            scene.add(kitchen);
-            
-            // Lounge (back left)
-            const lounge = new THREE.Group();
-            lounge.position.set(-35, 0, 25);
-            
-            const lFloor = vx(20, 1, 20, COLORS.floor);
-            lounge.add(lFloor);
-            
-            const couch = mkCouch();
-            couch.position.set(-5, 0.1, -7);
-            lounge.add(couch);
-            
-            const coffeeTable = mkCoffeeTable();
-            coffeeTable.position.set(0, 0.1, 0);
-            lounge.add(coffeeTable);
-            
-            const lBookshelf = mkBookshelf();
-            lBookshelf.position.set(9, 0.1, -5);
-            lBookshelf.rotation.y = -Math.PI / 2;
-            lounge.add(lBookshelf);
-            
-            const lPlant1 = mkTree(6);
-            lPlant1.position.set(-8, 0.1, 8);
-            lounge.add(lPlant1);
-            
-            const lPlant2 = mkTree(5);
-            lPlant2.position.set(8, 0.1, 8);
-            lounge.add(lPlant2);
-            
-            // 2 agents sitting in lounge
-            const loungeAgent1 = mkAgent(0x9b59b6);
-            loungeAgent1.position.set(-3, 0.1, -4);
-            lounge.add(loungeAgent1);
-            
-            const loungeAgent2 = mkAgent(0xe67e22);
-            loungeAgent2.position.set(3, 0.1, -4);
-            lounge.add(loungeAgent2);
-            
-            const lLight = mkCeilingLight();
-            lLight.position.set(0, 11, 0);
-            lounge.add(lLight);
-            
-            scene.add(lounge);
-            
-            // Meeting Room (front left)
-            const meeting = new THREE.Group();
-            meeting.position.set(-35, 0, -25);
-            
-            const mFloor = vx(15, 1, 20, COLORS.floor);
-            meeting.add(mFloor);
-            
-            const mTable = vx(10, 2.5, 4, COLORS.table);
-            mTable.position.set(0, 1.25, 0);
-            meeting.add(mTable);
-            
-            for (let i = 0; i < 5; i++) {
-                const mChair = mkChair();
-                if (i < 3) {
-                    mChair.position.set(-5.5, 0, -4 + i * 4);
-                    mChair.rotation.y = Math.PI / 2;
-                } else {
-                    mChair.position.set(5.5, 0, -6 + (i - 3) * 4);
-                    mChair.rotation.y = -Math.PI / 2;
-                }
-                meeting.add(mChair);
-            }
-            
-            const mWb = mkWhiteboard();
-            mWb.position.set(-7, 0.1, 0);
-            mWb.rotation.y = Math.PI / 2;
-            meeting.add(mWb);
-            
-            // 1-2 agents in meeting room
-            const mAgent1 = mkAgent(0x2ecc71);
-            mAgent1.position.set(-3, 0, -2);
-            meeting.add(mAgent1);
-            
-            const mLight = mkCeilingLight();
-            mLight.position.set(0, 11, 0);
-            meeting.add(mLight);
-            
-            scene.add(meeting);
-            
-            // Server Room (small, minimal)
-            const serverRoom = new THREE.Group();
-            serverRoom.position.set(35, 0, 25);
-            
-            const sFloor = vx(15, 1, 15, 0x333333);
-            serverRoom.add(sFloor);
-            
-            // 2-4 server racks only
-            for (let i = 0; i < 3; i++) {
-                const rack = mkServerRack();
-                rack.position.set(-5 + i * 5, 0.1, 0);
-                serverRoom.add(rack);
-            }
-            
-            const sLight = mkCeilingLight();
-            sLight.position.set(0, 11, 0);
-            serverRoom.add(sLight);
-            
-            scene.add(serverRoom);
-        }
-        
-        // UI Functions
-        function updateClock() {
-            const now = new Date();
-            const timeStr = now.toLocaleTimeString('en-US', { hour12: false });
-            const dateStr = now.toLocaleDateString('en-US', { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' });
-            document.getElementById('clock').textContent = timeStr;
-            document.getElementById('date').textContent = dateStr;
-        }
-        
-        function getCity() {
-            return localStorage.getItem('duck_city') || 'Huber Heights,OH';
-        }
-        
-        async function fetchWeather() {
-            const city = getCity();
-            try {
-                const res = await fetch(`https://wttr.in/${encodeURIComponent(city)}?format=j1`);
-                const data = await res.json();
-                const current = data.current_condition[0];
-                const tempF = current.temp_F;
-                const windMph = current.windspeedMiles;
-                const desc = current.weatherDesc[0].value;
-                document.getElementById('weather-temp').textContent = `${tempF}°F`;
-                document.getElementById('weather-desc').textContent = `${desc} • ${windMph} mph wind`;
-                document.getElementById('weather-city').textContent = city;
-            } catch (e) {
-                document.getElementById('weather-temp').textContent = '--°F';
-                document.getElementById('weather-desc').textContent = 'Unavailable';
-                document.getElementById('weather-city').textContent = city;
-            }
-        }
-        
-        function editCity() {
-            const current = getCity();
-            const newCity = prompt('Enter city for weather (e.g., "New York,NY"):', current);
-            if (newCity && newCity.trim()) {
-                localStorage.setItem('duck_city', newCity.trim());
-                fetchWeather();
-            }
-        }
-        
-        async function fetchSessions() {
-            try {
-                const res = await fetch(C.u + '/sessions');
-                const data = await res.json();
-                const sessions = data.sessions || [];
-                document.getElementById('agent-num').textContent = sessions.length;
-                const list = document.getElementById('session-list');
-                if (sessions.length === 0) {
-                    list.innerHTML = '<div class="session-item">No active sessions</div>';
-                } else {
-                    list.innerHTML = sessions.map(s => 
-                        `<div class="session-item">🦆 ${s.model || 'agent'} • ${(s.tokens || 0).toLocaleString()} tokens</div>`
-                    ).join('');
-                }
-            } catch (e) {
-                document.getElementById('agent-num').textContent = '?';
-                document.getElementById('session-list').innerHTML = '<div class="session-item">Session API unavailable</div>';
-            }
-        }
-        
-        // Animation
-        function tick() {
-            try {
-                const time = Date.now() * 0.001;
-                
-                // Animate agents (gentle bob/sway)
-                O.agents.forEach(agent => {
-                    const phase = agent.userData.phase || 0;
-                    agent.position.y = Math.sin(time * 2 + phase) * 0.1;
-                    agent.rotation.y = Math.sin(time * 1.5 + phase) * 0.05;
-                });
-                
-                // Animate monitors (emissive pulse)
-                O.monitors.forEach(m => {
-                    if (m && m.material) {
-                        m.material.emissiveIntensity = 0.3 + Math.sin(time * 3) * 0.1;
-                    }
-                });
-                
-                // Animate plants (subtle scale breathe)
-                O.plants.forEach(plant => {
-                    const phase = plant.userData.phase || 0;
-                    const scale = 1 + Math.sin(time * 1.5 + phase) * 0.02;
-                    plant.scale.set(scale, scale, scale);
-                });
-                
-                // Animate ceiling lights (gentle emissive flicker)
-                O.blinkLights.forEach(light => {
-                    if (light && light.material) {
-                        light.material.emissiveIntensity = 0.5 + Math.sin(time * 5 + Math.random()) * 0.1;
-                    }
-                });
-                
-                controls.update();
-                renderer.render(scene, camera);
-            } catch (e) {
-                console.error('Animation error:', e);
-            }
-            requestAnimationFrame(tick);
-        }
-        
-        // Window resize
-        window.addEventListener('resize', () => {
-            camera.left = -window.innerWidth / 15;
-            camera.right = window.innerWidth / 15;
-            camera.top = window.innerHeight / 15;
-            camera.bottom = -window.innerHeight / 15;
-            camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight);
-        });
-        
-        // Initialize
-        buildOffice();
-        updateClock();
+      } catch (e) {
+        document.getElementById('weather-desc').textContent = 'Click to set city';
+      }
+    }
+    
+    function editCity() {
+      const city = prompt('Enter city or ZIP:', weatherCity);
+      if (city) {
+        weatherCity = city;
         fetchWeather();
-        fetchSessions();
-        
-        setInterval(updateClock, 1000);
-        setInterval(fetchWeather, 300000); // 5 minutes
-        setInterval(fetchSessions, 5000); // 5 seconds
-        
-        tick();
-    </script>
+      }
+    }
+    
+    // Update clock
+    function updateClock() {
+      const now = new Date();
+      const timeStr = now.toLocaleTimeString('en-US', { hour12: false });
+      const dateStr = now.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+      document.getElementById('clock-time').textContent = timeStr;
+      document.getElementById('clock-date').textContent = dateStr;
+    }
+    
+    // Fetch agents
+    async function fetchAgents() {
+      try {
+        const res = await fetch('http://localhost:18790/sessions');
+        const data = await res.json();
+        const list = document.getElementById('agent-list');
+        if (data && data.sessions && data.sessions.length > 0) {
+          list.innerHTML = data.sessions.slice(0, 5).map(s => 
+            '<div class="agent-item"><div class="agent-dot"></div><span class="agent-name">' + 
+            (s.name || s.id || 'Agent') + '</span><span class="agent-status">●</span></div>'
+          ).join('');
+        } else {
+          list.innerHTML = '<div class="agent-item"><span class="agent-name">No active agents</span></div>';
+        }
+      } catch (e) {
+        document.getElementById('agent-list').innerHTML = '<div class="agent-item"><span class="agent-name">Gateway offline</span></div>';
+      }
+    }
+    
+    // Render scene
+    function render(tick) {
+      ctx.fillStyle = '#0a0a0f';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      
+      drawFloor();
+      
+      // Main office desks
+      drawDesk(ctx, 3, 3, tick);
+      drawDesk(ctx, 3, 6, tick);
+      drawDesk(ctx, 3, 9, tick);
+      drawDesk(ctx, 11, 3, tick);
+      drawDesk(ctx, 11, 6, tick);
+      drawDesk(ctx, 11, 9, tick);
+      
+      // Agents at desks
+      drawAgent(ctx, 3.5, 4, tick, '#E53935');
+      drawAgent(ctx, 3.5, 7, tick, '#1E88E5');
+      drawAgent(ctx, 3.5, 10, tick, '#43A047');
+      drawAgent(ctx, 11.5, 4, tick, '#FB8C00');
+      drawAgent(ctx, 11.5, 7, tick, '#8E24AA');
+      drawAgent(ctx, 11.5, 10, tick, '#00ACC1');
+      
+      // Bookshelf
+      drawBookshelf(ctx, 7, 3);
+      
+      // Plants scattered
+      drawPlant(ctx, 1, 5, tick);
+      drawPlant(ctx, 17, 8, tick);
+      drawPlant(ctx, 9, 12, tick);
+      
+      // Whiteboards on walls
+      drawWhiteboard(ctx, 5, 1, tick);
+      drawWhiteboard(ctx, 13, 1, tick);
+      
+      // Kitchen area
+      drawIsoBlock(ctx, 16, 6, 12, '#9E9E9E', '#757575', '#616161');
+      drawCoffeeMachine(ctx, 17, 5, tick);
+      drawIsoBlock(ctx, 16, 9, 10, '#8D6E63', '#6D4C41', '#5D4037');
+      
+      // Lounge area
+      drawRug(ctx, 3, 11);
+      drawSofa(ctx, 3, 11);
+      drawCoffeeTable(ctx, 3, 12);
+      drawAgent(ctx, 3, 11.5, tick, '#FDD835');
+      drawAgent(ctx, 4, 11.5, tick, '#FF7043');
+      
+      // Meeting area
+      drawIsoBlock(ctx, 3, 3, 10, '#5D4037', '#4E342E', '#3E2723');
+      drawChair(ctx, 2, 2);
+      drawChair(ctx, 4, 2);
+      drawChair(ctx, 2, 4);
+      drawChair(ctx, 4, 4);
+      
+      // Server room
+      drawServerRack(ctx, 14, 11, tick);
+      drawServerRack(ctx, 15, 11, tick);
+      
+      // Monitors on desks
+      drawMonitor(ctx, 3, 3, tick);
+      drawMonitor(ctx, 3, 6, tick);
+      drawMonitor(ctx, 11, 6, tick);
+      
+      requestAnimationFrame(() => render(tick + 1));
+    }
+    
+    // Initialize
+    updateClock();
+    setInterval(updateClock, 1000);
+    fetchWeather();
+    setInterval(fetchWeather, 300000);
+    fetchAgents();
+    setInterval(fetchAgents, 5000);
+    
+    // Start animation
+    render(0);
+  </script>
 </body>
 </html>
