@@ -165,6 +165,23 @@ function createPlant() {
       }
       g.userData.isPlant = true;
       return g;
+
+function createServerRack(){
+      var g = new THREE.Group();
+      add(g, mkBox(1.5, 5, 1.2, 0x1a1a2a, {metalness: 0.4, roughness: 0.6}));
+      L(g).position.y = 2.5;
+      for(var s = 0; s < 5; s++){
+        add(g, mkBox(1.3, 0.4, 1.0, 0x2a2a3a, {metalness: 0.3, roughness: 0.5}));
+        L(g).position.y = 0.3 + s * 0.9;
+        add(g, mkBox(0.08, 0.08, 0.08, 0x00ff88, {emissive: 0x00ff88, emissiveIntensity: 1.0}));
+        L(g).position.set(-0.55, 0.3 + s * 0.9, 0.45);
+        officeObjects.blinkLights.push(L(g));
+      }
+      add(g, mkBox(1.3, 0.06, 1.0, 0x111120));
+      L(g).position.y = 0.2;
+      return g;
+    }
+
     }
 function createChair() {
       const g = new THREE.Group();
@@ -218,10 +235,34 @@ function createMainOffice(){
     g.add(dg);officeObjects.desks.push(dg);
     var chair=createChair();chair.position.set(dp.x,0,dp.z+2);g.add(chair);officeObjects.chairs.push(chair);
   });
-  for(var x=-32;x<=-5;x+=8){for(var z=-28;z<=8;z+=7){
-    add(g,mkBox(3.5,0.1,0.3,0xeeeeff,{emissive:0xeeeeff,emissiveIntensity:0.6}));L(g).position.set(x,8.9,z);
-    var pl=new THREE.PointLight(0xeeeeff,0.4,10);pl.position.set(x,8.4,z);g.add(pl);
-  }}
+  // Server racks along the back wall
+  var serverPositions = [
+    {x: -35, z: -38}, {x: -28, z: -38}, {x: -21, z: -38},
+    {x: 21, z: -38}, {x: 28, z: -38}, {x: 35, z: -38},
+    {x: -35, z: 12}, {x: -28, z: 12}, {x: -21, z: 12},
+    {x: 21, z: 12}, {x: 28, z: 12}, {x: 35, z: 12}
+  ];
+  serverPositions.forEach(function(sp){
+    var sr = createServerRack();
+    sr.position.set(sp.x, 0, sp.z);
+    g.add(sr);
+  });
+
+  // Extra plants around the office
+  var extraPlants = [
+    {x: -38, z: -10}, {x: -38, z: 10}, {x: 38, z: -10}, {x: 38, z: 10},
+    {x: -15, z: 15}, {x: 0, z: 15}, {x: 15, z: 15},
+    {x: -15, z: -38}, {x: 15, z: -38},
+    {x: -42, z: -30}, {x: 42, z: -30}, {x: -42, z: 30}, {x: 42, z: 30}
+  ];
+  extraPlants.forEach(function(ep){
+    var plant = createPlant();
+    plant.position.set(ep.x, 0, ep.z);
+    plant.scale.set(1.2, 1.2, 1.2);
+    g.add(plant);
+    officeObjects.plants.push(plant);
+  });
+
   scene.add(g);
 }
 function createHallway(){
@@ -235,10 +276,28 @@ function createHallway(){
   add(g,mkBox(0.5,9,60,0x4a5565));L(g).position.set(-5,4.5,0);
   add(g,mkBox(0.5,9,60,0x4a5565));L(g).position.set(5,4.5,0);
   add(g,mkBox(10,0.3,60,0x606070));L(g).position.y=9;
-  for(var z=-26;z<=28;z+=8){
-    add(g,mkBox(5,0.1,0.3,0xffffff,{emissive:0xffffff,emissiveIntensity:0.7}));L(g).position.set(0,8.9,z);
-    var pl=new THREE.PointLight(0xffffff,0.35,10);pl.position.set(0,8.4,z);g.add(pl);
-  }
+  // Ceiling lights removed - replaced with servers and plants
+  var rooftopServers = [
+    {x: -4, z: -8}, {x: 4, z: -8},
+    {x: -4, z: 8}, {x: 4, z: 8}
+  ];
+  rooftopServers.forEach(function(rs){
+    var sr = createServerRack();
+    sr.position.set(rs.x, 0, rs.z);
+    g.add(sr);
+  });
+
+  var rooftopPlants = [
+    {x: -10, z: -4}, {x: 10, z: -4},
+    {x: -10, z: 4}, {x: 10, z: 4},
+    {x: 0, z: -12}, {x: 0, z: 12}
+  ];
+  rooftopPlants.forEach(function(rp){
+    var plant = createPlant();
+    plant.position.set(rp.x, 0, rp.z);
+    g.add(plant);
+    officeObjects.plants.push(plant);
+  });
   var doors=[{z:-18,label:'SERVER',color:0x00ccff},{z:-6,label:'GAMING',color:0xff44aa},{z:8,label:'KITCHEN',color:0xff8844},{z:22,label:'SUPPLY',color:0x888888}];
   doors.forEach(function(d){
     add(g,mkBox(0.15,7,2.8,0x666666));L(g).position.set(-4.75,3.5,d.z);
@@ -325,7 +384,7 @@ function createGamingLounge(){
   add(g,mkBox(0.5,8,16,0x3a3a50));L(g).position.set(10,4,0);
   add(g,mkBox(0.5,8,16,0x3a3a50));L(g).position.set(-10,4,0);
   var neonColors=[0xff00aa,0x00ffff];
-  for(var n=0;n<4;n++){var nc=neonColors[n%2];var nb=mkBox(16,0.12,0.2,nc,{emissive:nc,emissiveIntensity:1.0});nb.position.set(0,8.8,-5+n*3.5);var nl=new THREE.PointLight(nc,0.6,8);nl.position.set(0,8.4,-5+n*3.5);g.add(nl);g.add(nb);officeObjects.neonStrips.push({mesh:nb,color:nc,phase:n*0.8});}
+  //   for(var n=0;n<4;n++){var nc=neonColors[n%2];var nb=mkBox(16,0.12,0.2,nc,{emissive:nc,emissiveIntensity:1.0});nb.position.set(0,8.8,-5+n*3.5);var nl=new THREE.PointLight(nc,0.6,8);nl.position.set(0,8.4,-5+n*3.5);g.add(nl);g.add(nb);officeObjects.neonStrips.push({mesh:nb,color:nc,phase:n*0.8});}
   var arcadeG=new THREE.Group();
   arcadeG.add(mkBox(1.2,5,1.5,0x220033));L(arcadeG).position.y=2.5;
   arcadeG.add(mkBox(1.0,1.2,0.1,0x111111));L(arcadeG).position.set(0,3.2,0.76);
@@ -570,6 +629,9 @@ function createLoungeArea(){
   ctG.add(mkBox(0.15,0.8,0.15,0x555555));L(ctG).position.set(1.2,0.4,-0.5);
   ctG.position.set(0,0,1);g.add(ctG);
   var lPlant=createPlant();lPlant.scale.set(1.5,1.5,1.5);lPlant.position.set(5,0,-4);g.add(lPlant);officeObjects.plants.push(lPlant);
+    var lPlant2=createPlant();lPlant2.scale.set(1.2,1.2,1.2);lPlant2.position.set(-6,0,-4);g.add(lPlant2);officeObjects.plants.push(lPlant2);
+    var lPlant3=createPlant();lPlant3.scale.set(1.2,1.2,1.2);lPlant3.position.set(5,0,6);g.add(lPlant3);officeObjects.plants.push(lPlant3);
+    var sr=createServerRack();sr.position.set(-8,0,0);g.add(sr);
   var lPlant2=createPlant();lPlant2.scale.set(1.2,1.2,1.2);lPlant2.position.set(-5,0,-4);g.add(lPlant2);officeObjects.plants.push(lPlant2);
   scene.add(g);
 }
